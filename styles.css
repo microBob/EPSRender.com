@@ -1,0 +1,34 @@
+@charset "utf-8";
+* {
+    font-family: 'Overpass', sans-serif !important;
+    border-radius: 7px;
+
+    -webkit-transition-duration: 0.2s;
+    transition-duration: 0.2s;
+}
+
+button {
+    cursor: pointer;
+}
+
+.w3-bar-item {
+    border-radius: 0%;
+    font-weight: bold;
+}
+
+.textInput {
+    padding-left: 7px;
+}
+.selectInput {
+    padding-top: 3px;
+    padding-bottom: 3px;
+    padding-left: 7px;
+}
+
+td {
+    border-radius: 0%;
+}
+
+.error {
+    color: red;
+}
