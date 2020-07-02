@@ -8,6 +8,6 @@ public class HelloWorld {
             config.addStaticFiles("/public");
         }).start(7000);
 
-        app.get("test", ctx -> ctx.result("Test passed"));
+        app.get("test", ctx -> ctx.result("Test again"));
     }
 }
