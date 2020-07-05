@@ -4,7 +4,9 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+
     <title>EPRender.com</title>
+
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootswatch/4.5.0/materia/bootstrap.min.css">
     <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&amp;display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.0/css/all.css">
@@ -51,7 +53,7 @@
                                 </fieldset>
                             </div>
                             <!-- End: Login -->
-                            <div id="post-login-form">
+                            <div id="post-login-form" class="d-none">
                                 <!-- Start: Project Type -->
                                 <div class="form-group">
                                     <fieldset class="border rounded shadow-sm" style="padding: 15px;">
@@ -179,7 +181,7 @@
                 </div>
                 <!-- End: Server Status -->
             </div>
-            <!-- Start: Resync server info --><button class="btn btn-light" id="resync-server-btn" type="button" style="margin-top: 20px;"><i class="fas fa-sync-alt"></i>&nbsp;resync server info</button>
+            <!-- Start: Resync server info --><button class="btn btn-light" id="resync-server-btn" type="button" style="margin-top: 20px;" onclick="updateStatusBtn()"><i class="fas fa-sync-alt"></i>&nbsp;resync server info</button>
             <!-- End: Resync server info -->
         </div>
     </div>

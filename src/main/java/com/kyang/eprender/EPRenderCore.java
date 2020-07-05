@@ -2,7 +2,7 @@ package com.kyang.eprender;
 
 import io.javalin.Javalin;
 
-public class HelloWorld {
+public class EPRenderCore {
     public static void main(String[] args) {
         Javalin app = Javalin.create(config -> {
             config.addStaticFiles("/public");
