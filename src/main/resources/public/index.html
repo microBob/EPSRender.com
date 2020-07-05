@@ -34,7 +34,7 @@
                                     <!-- Start: Login with -->
                                     <div class="form-row" id="login-row">
                                         <!-- Start: EPSAuth -->
-                                        <div class="col-auto"><button class="btn btn-primary" type="button">Sign in with <i class="fab fa-microsoft"></i>&nbsp;Microsoft 365</button></div>
+                                        <div class="col-auto"><a class="btn btn-primary text-light" type="button" href="/login">Sign in with <i class="fab fa-microsoft"></i>&nbsp;Microsoft 365</a></div>
                                         <!-- End: EPSAuth -->
                                         <!-- Start: Help -->
                                         <div class="col"><button class="btn btn-light login-help-btn" data-toggle="tooltip" data-bs-tooltip="" type="button" title="With a simple click, you can sign in and confirm your identity with your school supplied  Microsoft account."><i class="far fa-question-circle"></i></button></div>
@@ -43,7 +43,7 @@
                                     <!-- End: Login with -->
                                     <!-- Start: Logged In -->
                                     <div class="form-row d-none" id="logged-in-row">
-                                        <div class="col-auto"><label class="col-form-label" id="current-user-lbl">Currently logged in as: <strong>kyang</strong></label></div>
+                                        <div class="col-auto"><label class="col-form-label">Currently logged in as: <strong id="current-user-lbl">kyang</strong></label></div>
                                         <div class="col">
                                             <!-- Start: Change User --><button class="btn btn-light" data-toggle="tooltip" data-bs-tooltip="" data-placement="right" id="logout-help-btn" type="button" title="This site identifies the user based on who's signed in with  Microsoft 356 (formerly known as Office 356)."><i class="far fa-times-circle"></i>&nbsp;Not you?</button>
                                             <!-- End: Change User -->
@@ -93,11 +93,13 @@
                                     </fieldset>
                                 </div>
                                 <!-- End: Project Location -->
+                            </div>
+                            <div class="form-group">
                                 <!-- Start: request warning -->
-                                <p class="text-muted" id="warning-error-p">Please note: the Server will reject invalid job requests. Please contact support if you are experiencing any issues!</p>
+                                <p class="text-muted"><span id="warning-error-p">Please note: the Server will reject invalid job requests.</span> Please contact support if you require assistance!</p>
                                 <!-- End: request warning -->
                                 <!-- Start: Submit -->
-                                <div class="form-group"><button class="btn btn-primary" id="job-submit-btn" type="submit" disabled=""><i class="fas fa-plus-circle"></i>&nbsp;Add to Que!</button></div>
+                                <button class="btn btn-primary d-none" id="job-submit-btn" type="submit" disabled=""><i class="fas fa-plus-circle"></i>&nbsp;Add to Que!</button>
                                 <!-- End: Submit -->
                             </div>
                         </form>
@@ -362,6 +364,7 @@
     <!-- End: Modals -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/common.js"></script>
     <script src="assets/js/bs-init.js"></script>
     <script src="assets/js/newJobRequest.js"></script>
     <script src="assets/js/staticSite.js"></script>
