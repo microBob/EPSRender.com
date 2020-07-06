@@ -75,31 +75,49 @@ let checkForBlender = false;
 // check if all required fields are filled
 function completionValidation(showIssue = false) {
     /*
-     * 1) check if project type is > 2
-     * 2) check if use all frames is checked, skip to 5 if so
-     * 3) if 1 is true, check if start frame is assigned
-     * 3.1) if showIssue, highlight in warning
-     * 3.2) show missing start in error
-     * 4) check if end frame is assigned too
-     * 4.1) check if end frame is less than start frame
-     * 4.2) if showIssue, highlight
-     * 4.3) show missing end in error
-     * 5) check if location is assigned
-     * 6) enable add to que if true and disable if failed any
+     * 1) check if project type is > 2 (whether need to check on blender render)
+     * 2) check if project location is empty
+     * 2.1) display #2 if showIssue
+     * 3) check blender render settings if #1 is true
+     * 3.1) check if start frame is empty
+     * 3.1.1) display #3.1 if showIssue
+     * 3.2) check if end frame is empty
+     * 3.2.1) display #3.2 if showIssue
+     * 3.3) if no other errors so far, check if end frame < start frame
+     * 3.3.1) display #3.3 if showIssue
+     * 4) enable the submit btn if all above succeeded, disable if not
+     * 5) set the update the warning text field
+     * 5.1) show missing values in required fields
+     * 5.2) show end frame is smaller than start
      */
 
     let requiredFieldMissingMsg = false;
     let smallerEndFrameMsg = false;
 
+    // 1
     if ($projectTypeSelect.val() > 2) {
         checkForBlender = !$blenderUseAllFramesCheck.prop("checked");
     } else {
         checkForBlender = false;
     }
 
+    // 2
+    if ($projectLocationInput.val() === "") {
+        requiredFieldMissingMsg = true;
+        //2.1
+        if (showIssue) {
+            addCSSClass($projectLocationInput, "bg-warning")
+        }
+    } else {
+        removeCSSClass($projectLocationInput, "bg-warning");
+    }
+
+    // 3
     if (checkForBlender) {
+        // 3.1
         if ($startFrameInput.val().toString() === "") {
             requiredFieldMissingMsg = true;
+            // 3.1.1
             if (showIssue) {
                 addCSSClass($startFrameInput, "bg-warning");
             }
@@ -107,13 +125,18 @@ function completionValidation(showIssue = false) {
             removeCSSClass($startFrameInput, "bg-warning");
         }
 
+        // 3.2
         if ($endFrameInput.val().toString() === "") {
             requiredFieldMissingMsg = true;
+            // 3.2.1
             if (showIssue) {
                 addCSSClass($endFrameInput, "bg-warning");
             }
-        } else if ($endFrameInput.val() < $startFrameInput.val()) {
+        }
+        // 3.3
+        if (!requiredFieldMissingMsg && $endFrameInput.val() < $startFrameInput.val()) {
             smallerEndFrameMsg = true;
+            // 3.3.1
             if (showIssue) {
                 addCSSClass($endFrameInput, "bg-warning");
             }
@@ -122,15 +145,7 @@ function completionValidation(showIssue = false) {
         }
     }
 
-    if ($projectLocationInput.val() === "") {
-        requiredFieldMissingMsg = true;
-        if (showIssue) {
-            addCSSClass($projectLocationInput, "bg-warning")
-        }
-    } else {
-        removeCSSClass($projectLocationInput, "bg-warning");
-    }
-
+    // 4
     if (!requiredFieldMissingMsg && !smallerEndFrameMsg) {
         if ($jobSubmitBtn.prop("disabled")) {
             $jobSubmitBtn.prop("disabled", false);
@@ -141,11 +156,15 @@ function completionValidation(showIssue = false) {
         }
     }
 
+    // 5
     if (showIssue) {
+        // 5.1
         if (requiredFieldMissingMsg) {
             $errorMessageLbl.text("Some required fields are empty. Please fill them in.");
             addCSSClass($errorMessageLbl, "text-warning");
-        } else if (smallerEndFrameMsg) {
+        }
+        // 5.2
+        else if (smallerEndFrameMsg) {
             $errorMessageLbl.text("The requested end frame in the Blender render is less than the start frame! Please make the end frame more than the start frame.");
             addCSSClass($errorMessageLbl, "text-warning");
         } else {

@@ -14,361 +14,508 @@
 </head>
 
 <body>
-    <header class="text-light bg-dark" style="margin: 0px;padding: 5px;opacity: 0.90;">
-        <h1 class="text-center"><strong>EPRender</strong></h1>
-        <h5 class="text-center">Eastside Preparatory School's Render Server</h5>
-    </header>
-    <!-- Start: 1 Row 1 Column -->
-    <div style="padding: 20px;margin-top: 15px;">
-        <div class="container">
-            <div class="row">
-                <!-- Start: Job Request -->
-                <div class="col-md-12">
-                    <div class="shadow" style="padding: 15px;">
-                        <h2>New Job Request</h2>
-                        <form style="padding: 0px;">
-                            <!-- Start: Login -->
+<header class="text-light bg-dark" style="margin: 0px;padding: 5px;opacity: 0.90;">
+    <h1 class="text-center"><strong>EPRender</strong></h1>
+    <h5 class="text-center">Eastside Preparatory School's Render Server</h5>
+</header>
+<!-- Start: 1 Row 1 Column -->
+<div style="padding: 20px;margin-top: 15px;">
+    <div class="container">
+        <div class="row">
+            <!-- Start: Job Request -->
+            <div class="col-md-12">
+                <div class="shadow" style="padding: 15px;">
+                    <h2>New Job Request</h2>
+                    <form style="padding: 0px;">
+                        <!-- Start: Login -->
+                        <div class="form-group">
+                            <fieldset class="border rounded shadow-sm" style="padding: 15px;">
+                                <legend>Login</legend>
+                                <!-- Start: Login with -->
+                                <div class="form-row" id="login-row">
+                                    <!-- Start: EPSAuth -->
+                                    <div class="col-auto"><a class="btn btn-primary text-light" type="button"
+                                                             href="/login">Sign in with <i class="fab fa-microsoft"></i>&nbsp;Microsoft
+                                        365</a></div>
+                                    <!-- End: EPSAuth -->
+                                    <!-- Start: Help -->
+                                    <div class="col">
+                                        <button class="btn btn-light login-help-btn" data-toggle="tooltip"
+                                                data-bs-tooltip="" type="button"
+                                                title="With a simple click, you can sign in and confirm your identity with your school supplied  Microsoft account.">
+                                            <i class="far fa-question-circle"></i></button>
+                                    </div>
+                                    <!-- End: Help -->
+                                </div>
+                                <!-- End: Login with -->
+                                <!-- Start: Logged In -->
+                                <div class="form-row d-none" id="logged-in-row">
+                                    <div class="col"><label class="col-form-label">Currently logged in as: <strong
+                                            id="current-user-lbl"></strong></label></div>
+                                    <div class="col">
+                                        <!-- Start: Change User -->
+                                        <button class="btn btn-light" data-toggle="tooltip" data-bs-tooltip=""
+                                                data-placement="right" id="logout-help-btn" type="button"
+                                                title="This site identifies the user based on who's signed in with  Microsoft 356 (formerly known as Office 356).">
+                                            <i class="far fa-times-circle"></i>&nbsp;Not you?
+                                        </button>
+                                        <!-- End: Change User -->
+                                    </div>
+                                </div>
+                                <!-- End: Logged In -->
+                            </fieldset>
+                        </div>
+                        <!-- End: Login -->
+                        <div id="post-login-form" class="d-none">
+                            <!-- Start: Project Type -->
                             <div class="form-group">
                                 <fieldset class="border rounded shadow-sm" style="padding: 15px;">
-                                    <legend>Login</legend>
-                                    <!-- Start: Login with -->
-                                    <div class="form-row" id="login-row">
-                                        <!-- Start: EPSAuth -->
-                                        <div class="col-auto"><a class="btn btn-primary text-light" type="button" href="/login">Sign in with <i class="fab fa-microsoft"></i>&nbsp;Microsoft 365</a></div>
-                                        <!-- End: EPSAuth -->
+                                    <legend>Project Type</legend>
+                                    <div class="form-row">
+                                        <!-- Start: Type Select -->
+                                        <div class="col-auto"><select class="form-control" id="type-select">
+                                            <optgroup label="Adobe Media Encoder">
+                                                <option value="1" selected="">Adobe Premiere Pro (.prproj)</option>
+                                                <option value="2">Adobe After Effects (.aep, .aepx)</option>
+                                            </optgroup>
+                                            <optgroup label="Blender">
+                                                <option value="3">Blender 2.83.1 Cycles (.blend)</option>
+                                                <option value="4">Blender 2.83.1 EEVEE (.blend)</option>
+                                            </optgroup>
+                                        </select></div>
+                                        <!-- End: Type Select -->
                                         <!-- Start: Help -->
-                                        <div class="col"><button class="btn btn-light login-help-btn" data-toggle="tooltip" data-bs-tooltip="" type="button" title="With a simple click, you can sign in and confirm your identity with your school supplied  Microsoft account."><i class="far fa-question-circle"></i></button></div>
+                                        <div class="col">
+                                            <button class="btn btn-light project-type-help-btn" data-toggle="tooltip"
+                                                    data-bs-tooltip="" type="button"
+                                                    title="The Render Server supports rendering from different platforms, but you'll need to specify which one to use.">
+                                                <i class="far fa-question-circle"></i></button>
+                                        </div>
                                         <!-- End: Help -->
                                     </div>
-                                    <!-- End: Login with -->
-                                    <!-- Start: Logged In -->
-                                    <div class="form-row d-none" id="logged-in-row">
-                                        <div class="col"><label class="col-form-label">Currently logged in as: <strong id="current-user-lbl"></strong></label></div>
-                                        <div class="col">
-                                            <!-- Start: Change User --><button class="btn btn-light" data-toggle="tooltip" data-bs-tooltip="" data-placement="right" id="logout-help-btn" type="button" title="This site identifies the user based on who's signed in with  Microsoft 356 (formerly known as Office 356)."><i class="far fa-times-circle"></i>&nbsp;Not you?</button>
-                                            <!-- End: Change User -->
+                                    <!-- Start: Render settings -->
+                                    <div class="d-none" id="blender-render-settings" style="margin-top: 20px;">
+                                        <div class="form-row">
+                                            <div class="col-4"><label class="col-form-label">Start Frame:&nbsp;</label>
+                                            </div>
+                                            <div class="col"><input class="form-control" type="number"
+                                                                    id="start-frame-input" placeholder="1"
+                                                                    onchange="completionValidation()"></div>
                                         </div>
+                                        <div class="form-row" style="margin-top: 10px;">
+                                            <div class="col-4"><label class="col-form-label">End Frame:&nbsp;</label>
+                                            </div>
+                                            <div class="col"><input class="form-control" type="number"
+                                                                    id="end-frame-input" placeholder="250"
+                                                                    onchange="completionValidation()"></div>
+                                        </div>
+                                        <div class="form-check" style="margin-top: 10px;"><input
+                                                class="form-check-input" type="checkbox" id="use-all-frames-check-box"
+                                                onchange="completionValidation()"><label class="form-check-label"
+                                                                                         for="use-all-frames-check-box">Use
+                                            All Frames</label></div>
                                     </div>
-                                    <!-- End: Logged In -->
+                                    <!-- End: Render settings -->
                                 </fieldset>
                             </div>
-                            <!-- End: Login -->
-                            <div id="post-login-form" class="d-none">
-                                <!-- Start: Project Type -->
-                                <div class="form-group">
-                                    <fieldset class="border rounded shadow-sm" style="padding: 15px;">
-                                        <legend>Project Type</legend>
-                                        <div class="form-row">
-                                            <!-- Start: Type Select -->
-                                            <div class="col-auto"><select class="form-control" id="type-select"><optgroup label="Adobe Media Encoder"><option value="1" selected="">Adobe Premiere Pro (.prproj)</option><option value="2">Adobe After Effects (.aep, .aepx)</option></optgroup><optgroup label="Blender"><option value="3">Blender 2.83.1 Cycles (.blend)</option><option value="4">Blender 2.83.1 EEVEE (.blend)</option></optgroup></select></div>
-                                            <!-- End: Type Select -->
-                                            <!-- Start: Help -->
-                                            <div class="col"><button class="btn btn-light project-type-help-btn" data-toggle="tooltip" data-bs-tooltip="" type="button" title="The Render Server supports rendering from different platforms, but you'll need to specify which one to use."><i class="far fa-question-circle"></i></button></div>
-                                            <!-- End: Help -->
-                                        </div>
-                                        <!-- Start: Render settings -->
-                                        <div class="d-none" id="blender-render-settings" style="margin-top: 20px;">
-                                            <div class="form-row">
-                                                <div class="col-4"><label class="col-form-label">Start Frame:&nbsp;</label></div>
-                                                <div class="col"><input class="form-control" type="number" id="start-frame-input" placeholder="1" onkeypress="return (event.charCode === 8 || event.charCode === 0 || event.charCode === 13) ? null : event.charCode >= 48 && event.charCode <= 57" onchange="completionValidation()"></div>
-                                            </div>
-                                            <div class="form-row" style="margin-top: 10px;">
-                                                <div class="col-4"><label class="col-form-label">End Frame:&nbsp;</label></div>
-                                                <div class="col"><input class="form-control" type="number" id="end-frame-input" placeholder="250" onkeypress="return (event.charCode === 8 || event.charCode === 0 || event.charCode === 13) ? null : event.charCode >= 48 && event.charCode <= 57" onchange="completionValidation()"></div>
-                                            </div>
-                                            <div class="form-check" style="margin-top: 10px;"><input class="form-check-input" type="checkbox" id="use-all-frames-check-box" onchange="completionValidation()"><label class="form-check-label" for="use-all-frames-check-box">Use All Frames</label></div>
-                                        </div>
-                                        <!-- End: Render settings -->
-                                    </fieldset>
-                                </div>
-                                <!-- End: Project Type -->
-                                <!-- Start: Project Location -->
-                                <div class="form-group">
-                                    <fieldset class="border rounded shadow-sm" style="padding: 15px;">
-                                        <legend>Project Location</legend>
-                                        <div class="form-row d-lg-flex">
-                                            <div class="col-9"><input class="form-control" type="text" data-toggle="tooltip" data-bs-tooltip="" id="project-location-input" placeholder="\\drives\Student" title="Project Path" required="" minlength="6" onchange="completionValidation()"></div>
-                                            <div class="col"><button class="btn btn-light project-location-help-btn" data-toggle="tooltip" data-bs-tooltip="" id="project-location-help-btn" type="button" title="The Render Server uses the path to your project on the school's Student network drive to get your project."><i class="far fa-question-circle"></i></button></div>
-                                        </div>
-                                    </fieldset>
-                                </div>
-                                <!-- End: Project Location -->
-                            </div>
+                            <!-- End: Project Type -->
+                            <!-- Start: Project Location -->
                             <div class="form-group">
-                                <!-- Start: request warning -->
-                                <p class="text-muted"><span id="warning-error-p">Please note: the Server will reject invalid job requests.</span> Please contact support if you require assistance!</p>
-                                <!-- End: request warning -->
-                                <!-- Start: Submit -->
-                                <div onmouseenter="completionValidation(true)"><button class="btn btn-primary d-none" id="job-submit-btn" type="submit" disabled><i class="fas fa-plus-circle"></i>&nbsp;Add to Que!</button></div>
-                                <!-- End: Submit -->
+                                <fieldset class="border rounded shadow-sm" style="padding: 15px;">
+                                    <legend>Project Location</legend>
+                                    <div class="form-row d-lg-flex">
+                                        <div class="col-9"><input class="form-control" type="text" data-toggle="tooltip"
+                                                                  data-bs-tooltip="" id="project-location-input"
+                                                                  placeholder="\\drives\Student" title="Project Path"
+                                                                  required="" minlength="6"
+                                                                  onchange="completionValidation()"></div>
+                                        <div class="col">
+                                            <button class="btn btn-light project-location-help-btn"
+                                                    data-toggle="tooltip" data-bs-tooltip=""
+                                                    id="project-location-help-btn" type="button"
+                                                    title="The Render Server uses the path to your project on the school's Student network drive to get your project.">
+                                                <i class="far fa-question-circle"></i></button>
+                                        </div>
+                                    </div>
+                                </fieldset>
                             </div>
-                        </form>
-                    </div>
-                </div>
-                <!-- End: Job Request -->
-            </div>
-        </div>
-    </div>
-    <!-- End: 1 Row 1 Column -->
-    <!-- Start: 1 Row 2 Columns -->
-    <div>
-        <div class="container">
-            <div class="row">
-                <!-- Start: Job Que -->
-                <div class="col-md-6">
-                    <div class="shadow" style="padding: 15px;">
-                        <h2>Job Que</h2>
-                        <div class="table-responsive" id="job-que-table">
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>User</th>
-                                        <th>Type</th>
-                                        <th>Time Added</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>kyang</td>
-                                        <td>Blender Cycles</td>
-                                        <td>7/3/2020 7:37 PM</td>
-                                        <td class="text-primary">4/250 Rendered</td>
-                                    </tr>
-                                    <tr>
-                                        <td>kyang</td>
-                                        <td>Adobe Premiere Pro</td>
-                                        <td>7/3/2020 7:40 PM</td>
-                                        <td class="text-info">Place <strong>1</strong> in Que</td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                            <!-- End: Project Location -->
                         </div>
-                        <!-- Start: Learn More Btn --><button class="btn btn-light job-que-info-btn" type="button"><i class="fas fa-info-circle"></i>&nbsp;Learn More</button>
-                        <!-- End: Learn More Btn -->
-                    </div>
-                </div>
-                <!-- End: Job Que -->
-                <!-- Start: Server Status -->
-                <div class="col-md-6">
-                    <div class="shadow" style="padding: 15px;">
-                        <h2>Server Status</h2>
-                        <div class="table-responsive" id="server-status-table">
-                            <table class="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Node</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>Tower 1</td>
-                                        <td class="text-danger">Offline</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Corsair 2</td>
-                                        <td class="text-success">Ready</td>
-                                    </tr>
-                                    <tr>
-                                        <td>DELL 2</td>
-                                        <td class="text-warning">Rendering</td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                        <div class="form-group">
+                            <!-- Start: request warning -->
+                            <p class="text-muted"><span id="warning-error-p">Please note: the Server will reject invalid job requests.</span>
+                                Please contact support if you require assistance!</p>
+                            <!-- End: request warning -->
+                            <!-- Start: Submit -->
+                            <button class="btn btn-primary d-none" id="job-submit-btn" type="submit" disabled>
+                                <div onmouseenter="completionValidation(true)"><i
+                                        class="fas fa-plus-circle"></i>&nbsp;Add to Que!
+                                </div>
+                            </button>
+                            <!-- End: Submit -->
                         </div>
-                        <!-- Start: Learn More Btn --><button class="btn btn-light server-info-btn" type="button"><i class="fas fa-info-circle"></i>&nbsp;Learn More</button>
-                        <!-- End: Learn More Btn -->
-                    </div>
+                    </form>
                 </div>
-                <!-- End: Server Status -->
             </div>
-            <!-- Start: Resync server info --><button class="btn btn-light" id="resync-server-btn" type="button" style="margin-top: 20px;" onclick="updateStatusBtn()"><i class="fas fa-sync-alt"></i>&nbsp;resync server info</button>
-            <!-- End: Resync server info -->
+            <!-- End: Job Request -->
         </div>
     </div>
-    <!-- End: 1 Row 2 Columns -->
-    <!-- Start: 1 Row 2 Columns -->
-    <div style="margin-top: 20px;margin-bottom: 20px;">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-6">
-                    <h5>FAQ and Info</h5>
-                    <div class="btn-group-vertical" role="group">
-                        <!-- Start: Login --><button class="btn btn-light text-left login-help-btn" type="button"><i class="far fa-question-circle"></i>&nbsp;Logging in</button>
-                        <!-- End: Login -->
-                        <!-- Start: Logout --><button class="btn btn-light text-left logout-help-btn" type="button"><i class="far fa-question-circle"></i>&nbsp;Logging out</button>
-                        <!-- End: Logout -->
-                        <!-- Start: Type --><button class="btn btn-light text-left project-type-help-btn" type="button"><i class="far fa-question-circle"></i>&nbsp;Project Type</button>
-                        <!-- End: Type -->
-                        <!-- Start: Location --><button class="btn btn-light text-left project-location-help-btn" type="button"><i class="far fa-question-circle"></i>&nbsp;Project Location</button>
-                        <!-- End: Location -->
-                        <!-- Start: Server --><button class="btn btn-light text-left server-info-btn" type="button"><i class="fas fa-info-circle"></i>&nbsp;The Server</button>
-                        <!-- End: Server -->
-                        <!-- Start: Que --><button class="btn btn-light text-left job-que-info-btn" type="button"><i class="fas fa-info-circle"></i>&nbsp;The Job Que</button>
-                        <!-- End: Que -->
+</div>
+<!-- End: 1 Row 1 Column -->
+<!-- Start: 1 Row 2 Columns -->
+<div>
+    <div class="container">
+        <div class="row">
+            <!-- Start: Job Que -->
+            <div class="col-md-6">
+                <div class="shadow" style="padding: 15px;">
+                    <h2>Job Que</h2>
+                    <div class="table-responsive" id="job-que-table">
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Type</th>
+                                <th>Time Added</th>
+                                <th>Status</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td>kyang</td>
+                                <td>Blender Cycles</td>
+                                <td>7/3/2020 7:37 PM</td>
+                                <td class="text-primary">4/250 Rendered</td>
+                            </tr>
+                            <tr>
+                                <td>kyang</td>
+                                <td>Adobe Premiere Pro</td>
+                                <td>7/3/2020 7:40 PM</td>
+                                <td class="text-info">Place <strong>1</strong> in Que</td>
+                            </tr>
+                            </tbody>
+                        </table>
                     </div>
+                    <!-- Start: Learn More Btn -->
+                    <button class="btn btn-light job-que-info-btn" type="button"><i class="fas fa-info-circle"></i>&nbsp;Learn
+                        More
+                    </button>
+                    <!-- End: Learn More Btn -->
                 </div>
-                <div class="col-md-6">
-                    <h5>Contact</h5>
-                    <div class="btn-group-vertical" role="group"><button class="btn btn-light text-left" id="support-btn" type="button"><i class="far fa-life-ring"></i>&nbsp;Support</button><button class="btn btn-light text-left" id="feedback-btn" type="button"><i class="far fa-lightbulb"></i>&nbsp;Feedback</button></div>
+            </div>
+            <!-- End: Job Que -->
+            <!-- Start: Server Status -->
+            <div class="col-md-6">
+                <div class="shadow" style="padding: 15px;">
+                    <h2>Server Status</h2>
+                    <div class="table-responsive" id="server-status-table">
+                        <table class="table table-striped">
+                            <thead>
+                            <tr>
+                                <th>Node</th>
+                                <th>Status</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td>Tower 1</td>
+                                <td class="text-danger">Offline</td>
+                            </tr>
+                            <tr>
+                                <td>Corsair 2</td>
+                                <td class="text-success">Ready</td>
+                            </tr>
+                            <tr>
+                                <td>DELL 2</td>
+                                <td class="text-warning">Rendering</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Start: Learn More Btn -->
+                    <button class="btn btn-light server-info-btn" type="button"><i class="fas fa-info-circle"></i>&nbsp;Learn
+                        More
+                    </button>
+                    <!-- End: Learn More Btn -->
+                </div>
+            </div>
+            <!-- End: Server Status -->
+        </div>
+        <!-- Start: Resync server info -->
+        <button class="btn btn-light" id="resync-server-btn" type="button" style="margin-top: 20px;"
+                onclick="updateStatusBtn()"><i class="fas fa-sync-alt"></i>&nbsp;resync server info
+        </button>
+        <!-- End: Resync server info -->
+    </div>
+</div>
+<!-- End: 1 Row 2 Columns -->
+<!-- Start: 1 Row 2 Columns -->
+<div style="margin-top: 20px;margin-bottom: 20px;">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <h5>FAQ and Info</h5>
+                <div class="btn-group-vertical" role="group">
+                    <!-- Start: Login -->
+                    <button class="btn btn-light text-left login-help-btn" type="button"><i
+                            class="far fa-question-circle"></i>&nbsp;Logging in
+                    </button>
+                    <!-- End: Login -->
+                    <!-- Start: Logout -->
+                    <button class="btn btn-light text-left logout-help-btn" type="button"><i
+                            class="far fa-question-circle"></i>&nbsp;Logging out
+                    </button>
+                    <!-- End: Logout -->
+                    <!-- Start: Type -->
+                    <button class="btn btn-light text-left project-type-help-btn" type="button"><i
+                            class="far fa-question-circle"></i>&nbsp;Project Type
+                    </button>
+                    <!-- End: Type -->
+                    <!-- Start: Location -->
+                    <button class="btn btn-light text-left project-location-help-btn" type="button"><i
+                            class="far fa-question-circle"></i>&nbsp;Project Location
+                    </button>
+                    <!-- End: Location -->
+                    <!-- Start: Server -->
+                    <button class="btn btn-light text-left server-info-btn" type="button"><i
+                            class="fas fa-info-circle"></i>&nbsp;The Server
+                    </button>
+                    <!-- End: Server -->
+                    <!-- Start: Que -->
+                    <button class="btn btn-light text-left job-que-info-btn" type="button"><i
+                            class="fas fa-info-circle"></i>&nbsp;The Job Que
+                    </button>
+                    <!-- End: Que -->
+                </div>
+            </div>
+            <div class="col-md-6">
+                <h5>Contact</h5>
+                <div class="btn-group-vertical" role="group">
+                    <button class="btn btn-light text-left" id="support-btn" type="button"><i
+                            class="far fa-life-ring"></i>&nbsp;Support
+                    </button>
+                    <button class="btn btn-light text-left" id="feedback-btn" type="button"><i
+                            class="far fa-lightbulb"></i>&nbsp;Feedback
+                    </button>
                 </div>
             </div>
         </div>
     </div>
-    <!-- End: 1 Row 2 Columns -->
-    <!-- Start: Modals -->
-    <div>
-        <!-- Start: Login Help -->
-        <div class="modal fade" role="dialog" tabindex="-1" id="login-help-modal">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h4 class="modal-title">Logging in with <i class="fab fa-microsoft"></i>&nbsp;Microsoft 365</h4><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button></div>
-                    <div class="modal-body">
-                        <p><strong>With a simple click, you can sign in and confirm your identity with your school supplied&nbsp;</strong><i class="fab fa-microsoft"></i><strong> Microsoft account.</strong><br><br>This ensures you have access to this service
-                            and also automatically confirms your email (used for notifying you when your render is complete).</p>
-                    </div>
-                    <div class="modal-footer"><button class="btn btn-light" type="button" data-dismiss="modal">Close</button></div>
+</div>
+<!-- End: 1 Row 2 Columns -->
+<!-- Start: Modals -->
+<div>
+    <!-- Start: Login Help -->
+    <div class="modal fade" role="dialog" tabindex="-1" id="login-help-modal">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Logging in with <i class="fab fa-microsoft"></i>&nbsp;Microsoft 365</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">×</span></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>With a simple click, you can sign in and confirm your identity with your school supplied&nbsp;</strong><i
+                            class="fab fa-microsoft"></i><strong> Microsoft account.</strong><br><br>This ensures you
+                        have access to this service
+                        and also automatically confirms your email (used for notifying you when your render is
+                        complete).</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-light" type="button" data-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
-        <!-- End: Login Help -->
-        <!-- Start: Logout Help -->
-        <div class="modal fade" role="dialog" tabindex="-1" id="logout-help-modal">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h4 class="modal-title">Signed in as someone else?</h4><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button></div>
-                    <div class="modal-body">
-                        <p><strong>This site identifies the user based on who's signed into&nbsp;</strong><i class="fab fa-microsoft"></i><strong> Microsoft 356 (formerly known as Office 356) on the computer.</strong><br><br>To change logins, simply go to
-                            <a href="https://www.office.com/">office.com</a>&nbsp;and sign in as yourself! Come back, reload the page, and you should be all good to go. If the problem persists, please contact support and we can help you out!</p>
-                    </div>
-                    <div class="modal-footer"><button class="btn btn-light" type="button" data-dismiss="modal">Close</button></div>
-                </div>
-            </div>
-        </div>
-        <!-- End: Logout Help -->
-        <!-- Start: Project Type Help -->
-        <div class="modal fade" role="dialog" tabindex="-1" id="project-type-help-modal">
-            <div class="modal-dialog modal-dialog-scrollable" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h4 class="modal-title">Project Type</h4><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button></div>
-                    <div class="modal-body">
-                        <p><strong>The Render Server supports rendering from different platforms, but you'll need to specify which one to use.</strong><br><br>Projects from Adobe Premiere Pro or After Effects will be processed with Adobe Media Encoder and
-                            rendered as an H.265 MP4. Blender projects will be rendered as the specified export type from the specified frames (inputs will be available when you select Blender as your type).</p>
-                    </div>
-                    <div class="modal-footer"><button class="btn btn-light" type="button" data-dismiss="modal">Close</button></div>
-                </div>
-            </div>
-        </div>
-        <!-- End: Project Type Help -->
-        <!-- Start: Project Location Help -->
-        <div class="modal fade" role="dialog" tabindex="-1" id="project-location-help-modal">
-            <div class="modal-dialog modal-dialog-scrollable" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h4 class="modal-title">Project Location</h4><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button></div>
-                    <div class="modal-body">
-                        <p style="max-height: 300px;"><strong>The Render Server uses the <em>path </em>to your project on the school's Student network drive to access your project files.</strong><br><br>Most projects require multiple, large, files that would make it almost impossible
-                            to upload in one go. The solution is to simply put your project on the Student network drive (like when you want to go laser cut something) and have the Server get your project for you. <strong>The Server will read the first related project file it sees (the first .prproj file, for example, if you are using Premiere Pro), so make sure you only have the file you want to render in the root of the project folder.</strong><br><br>The easiest way to find your project
-                            path is to use the file explorer. Navigate to your project on the network drive, and click on the blank space at the end of the address bar (circled in red):<img class="img-fluid" src="assets/img/win10-fileexplorer-addrbar.png" alt="File Explorer address bar"><br><br>This will change
-                            the address bar to show the text path of the folder. Copy that text and paste it in the Project Location text box.</p>
-                    </div>
-                    <div class="modal-footer"><button class="btn btn-light" type="button" data-dismiss="modal">Close</button></div>
-                </div>
-            </div>
-        </div>
-        <!-- End: Project Location Help -->
-        <!-- Start: Job Que Info -->
-        <div class="modal fade" role="dialog" tabindex="-1" id="job-que-info-modal">
-            <div class="modal-dialog modal-dialog-scrollable" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h4 class="modal-title">The Job Que</h4><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button></div>
-                    <div class="modal-body">
-                        <p><strong>The Job Que lists the current jobs the Server is working on and the placement of ones that have not started yet.</strong><br><br>Here's the que logic:<br></p>
-                        <ol>
-                            <li>First-come-first-served, right down to the seconds.</li>
-                            <li>Jobs will be taken by the next most powerful PC available</li>
-                            <li>A Blender job can be distributively rendered across multiple PCs at a time. If a Blender job is started, there will always be at least 1 PC rendering it until it has completed.</li>
-                            <li>Adobe Media Encoder jobs, on the other hand, can only be rendered on 1 PC at a time, but the Server PCs will pick it over a Blender job already in progress (as in the Server won't prioritize running a Blender job on multiple
-                                PCs).</li>
-                        </ol>
-                    </div>
-                    <div class="modal-footer"><button class="btn btn-light" type="button" data-dismiss="modal">Close</button></div>
-                </div>
-            </div>
-        </div>
-        <!-- End: Job Que Info -->
-        <!-- Start: Server Info -->
-        <div class="modal fade" role="dialog" tabindex="-1" id="server-info-modal">
-            <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h4 class="modal-title">About the Server</h4><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button></div>
-                    <div class="modal-body">
-                        <p style="max-height: 300px;"><strong>The Server consists of several PCs around the school, linked together to help render your projects</strong>.<br><br>In terms of performance, each node provides plenty of desktop-class computing power that can easily take
-                            the heavy lifting off of your laptop. For those of you interested, here's some technical information regarding each node:</p>
-                        <div class="table-responsive">
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>Node Name</th>
-                                        <th>CPU</th>
-                                        <th>GPU</th>
-                                        <th>RAM</th>
-                                        <th>Storage</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>Tower 1 (Coming soon!)</td>
-                                        <td>AMD Ryzen Threadripper 3960X (24c/48t)</td>
-                                        <td>Nvidia Titan RTX (24GB)</td>
-                                        <td>32 GB</td>
-                                        <td>NVMe SSD</td>
-                                    </tr>
-                                    <tr>
-                                        <td>VR 1 (a.k.a the VR Machine)</td>
-                                        <td>Intel Core i7 7700 (8c/8t)</td>
-                                        <td>Nvidia GeForce GTX 1080 (8GB)</td>
-                                        <td>32 GB</td>
-                                        <td>NVMe SSD</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Corsair 1 &amp; 2</td>
-                                        <td>Intel Core i7 6700 (4c/8t)</td>
-                                        <td>Nvidia GTX 960 (4GB)</td>
-                                        <td>16 GB</td>
-                                        <td>SSD</td>
-                                    </tr>
-                                    <tr>
-                                        <td>DELL 1, 2, 3</td>
-                                        <td>Intel Core i7 6700 (4c/8t)</td>
-                                        <td>Nvidia GTX 750 Ti (2 GB)</td>
-                                        <td>16 GB</td>
-                                        <td>HDD</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    <div class="modal-footer"><button class="btn btn-light" type="button" data-dismiss="modal">Close</button></div>
-                </div>
-            </div>
-        </div>
-        <!-- End: Server Info -->
     </div>
-    <!-- End: Modals -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/js/bootstrap.bundle.min.js"></script>
-    <script src="assets/js/common.js"></script>
-    <script src="assets/js/bs-init.js"></script>
-    <script src="assets/js/staticSite.js"></script>
-    <script src="assets/js/statusDisplay.js"></script>
-    <script src="assets/js/newJobRequest.js"></script>
+    <!-- End: Login Help -->
+    <!-- Start: Logout Help -->
+    <div class="modal fade" role="dialog" tabindex="-1" id="logout-help-modal">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Signed in as someone else?</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">×</span></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>This site identifies the user based on who's signed into&nbsp;</strong><i
+                            class="fab fa-microsoft"></i><strong> Microsoft 356 (formerly known as Office 356) on the
+                        computer.</strong><br><br>To change logins, simply go to
+                        <a href="https://www.office.com/">office.com</a>&nbsp;and sign in as yourself! Come back, reload
+                        the page, and you should be all good to go. If the problem persists, please contact support and
+                        we can help you out!</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-light" type="button" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- End: Logout Help -->
+    <!-- Start: Project Type Help -->
+    <div class="modal fade" role="dialog" tabindex="-1" id="project-type-help-modal">
+        <div class="modal-dialog modal-dialog-scrollable" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Project Type</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">×</span></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>The Render Server supports rendering from different platforms, but you'll need to specify
+                        which one to use.</strong><br><br>Projects from Adobe Premiere Pro or After Effects will be
+                        processed with Adobe Media Encoder and
+                        rendered as an H.265 MP4. Blender projects will be rendered as the specified export type from
+                        the specified frames (inputs will be available when you select Blender as your type).</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-light" type="button" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- End: Project Type Help -->
+    <!-- Start: Project Location Help -->
+    <div class="modal fade" role="dialog" tabindex="-1" id="project-location-help-modal">
+        <div class="modal-dialog modal-dialog-scrollable" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Project Location</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">×</span></button>
+                </div>
+                <div class="modal-body">
+                    <p style="max-height: 300px;"><strong>The Render Server uses the <em>path </em>to your project on
+                        the school's Student network drive to access your project files.</strong><br><br>Most projects
+                        require multiple, large, files that would make it almost impossible
+                        to upload in one go. The solution is to simply put your project on the Student network drive
+                        (like when you want to go laser cut something) and have the Server get your project for you.
+                        <strong>The Server will read the first related project file it sees (the first .prproj file, for
+                            example, if you are using Premiere Pro), so make sure you only have the file you want to
+                            render in the root of the project folder.</strong><br><br>The easiest way to find your
+                        project
+                        path is to use the file explorer. Navigate to your project on the network drive, and click on
+                        the blank space at the end of the address bar (circled in red):<img class="img-fluid"
+                                                                                            src="assets/img/win10-fileexplorer-addrbar.png"
+                                                                                            alt="File Explorer address bar"><br><br>This
+                        will change
+                        the address bar to show the text path of the folder. Copy that text and paste it in the Project
+                        Location text box.</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-light" type="button" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- End: Project Location Help -->
+    <!-- Start: Job Que Info -->
+    <div class="modal fade" role="dialog" tabindex="-1" id="job-que-info-modal">
+        <div class="modal-dialog modal-dialog-scrollable" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">The Job Que</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">×</span></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>The Job Que lists the current jobs the Server is working on and the placement of ones
+                        that have not started yet.</strong><br><br>Here's the que logic:<br></p>
+                    <ol>
+                        <li>First-come-first-served, right down to the seconds.</li>
+                        <li>Jobs will be taken by the next most powerful PC available</li>
+                        <li>A Blender job can be distributively rendered across multiple PCs at a time. If a Blender job
+                            is started, there will always be at least 1 PC rendering it until it has completed.
+                        </li>
+                        <li>Adobe Media Encoder jobs, on the other hand, can only be rendered on 1 PC at a time, but the
+                            Server PCs will pick it over a Blender job already in progress (as in the Server won't
+                            prioritize running a Blender job on multiple
+                            PCs).
+                        </li>
+                    </ol>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-light" type="button" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- End: Job Que Info -->
+    <!-- Start: Server Info -->
+    <div class="modal fade" role="dialog" tabindex="-1" id="server-info-modal">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">About the Server</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">×</span></button>
+                </div>
+                <div class="modal-body">
+                    <p style="max-height: 300px;"><strong>The Server consists of several PCs around the school, linked
+                        together to help render your projects</strong>.<br><br>In terms of performance, each node
+                        provides plenty of desktop-class computing power that can easily take
+                        the heavy lifting off of your laptop. For those of you interested, here's some technical
+                        information regarding each node:</p>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th>Node Name</th>
+                                <th>CPU</th>
+                                <th>GPU</th>
+                                <th>RAM</th>
+                                <th>Storage</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td>Tower 1 (Coming soon!)</td>
+                                <td>AMD Ryzen Threadripper 3960X (24c/48t)</td>
+                                <td>Nvidia Titan RTX (24GB)</td>
+                                <td>32 GB</td>
+                                <td>NVMe SSD</td>
+                            </tr>
+                            <tr>
+                                <td>VR 1 (a.k.a the VR Machine)</td>
+                                <td>Intel Core i7 7700 (8c/8t)</td>
+                                <td>Nvidia GeForce GTX 1080 (8GB)</td>
+                                <td>32 GB</td>
+                                <td>NVMe SSD</td>
+                            </tr>
+                            <tr>
+                                <td>Corsair 1 &amp; 2</td>
+                                <td>Intel Core i7 6700 (4c/8t)</td>
+                                <td>Nvidia GTX 960 (4GB)</td>
+                                <td>16 GB</td>
+                                <td>SSD</td>
+                            </tr>
+                            <tr>
+                                <td>DELL 1, 2, 3</td>
+                                <td>Intel Core i7 6700 (4c/8t)</td>
+                                <td>Nvidia GTX 750 Ti (2 GB)</td>
+                                <td>16 GB</td>
+                                <td>HDD</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-light" type="button" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- End: Server Info -->
+</div>
+<!-- End: Modals -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/js/bootstrap.bundle.min.js"></script>
+<script src="assets/js/common.js"></script>
+<script src="assets/js/bs-init.js"></script>
+<script src="assets/js/staticSite.js"></script>
+<script src="assets/js/statusDisplay.js"></script>
+<script src="assets/js/newJobRequest.js"></script>
 </body>
 
 </html>
