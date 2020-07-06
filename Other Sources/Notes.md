@@ -108,3 +108,16 @@
 |                 |                       |                          |
 |                 |                       |                          |
 
+## Models
+
+### Job Request (`.models.jobRequest`)
+
+| Property               | Variable Name       | Type                         | Notes                                                        |
+| ---------------------- | ------------------- | ---------------------------- | ------------------------------------------------------------ |
+| User's email           | `useremail`         | String                       | Identity of sender                                           |
+| Project Type           | `projectType`       | int (1-4)                    | `1` = Premiere Pro<br />`2` = After Effects<br />`3` = Blender Cycles<br />`4` = Blender EEVEE |
+| Blender Use All Frames | `blenderUseAll`     | boolean                      | `true` = use all frames<br />`false` = use start and end frames |
+| Blender Start Frame    | `blenderStartFrame` | int (`>= 1`)                 | only read if `blenderUseAll = false`.                        |
+| Blender End Frame      | `blenderEndFrame`   | int (`>= blenderStartFrame`) | only read if `blenderUseAll = false`                         |
+| Project Location       | `projectLocation`   | String                       | URL to location on student drive                             |
+

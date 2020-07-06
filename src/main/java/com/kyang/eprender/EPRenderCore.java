@@ -45,7 +45,6 @@ public class EPRenderCore {
                 ctx.result("");
             }
         });
-
         // SECTION ^: Login
 
     }
