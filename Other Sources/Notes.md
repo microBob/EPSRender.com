@@ -39,6 +39,7 @@
 	  		* registers all frames to be rendered
 	  * URL input: **`project-location-input`**
 	  	* URL string to project location
+	  	* minimum URL (to Student drive): `\\drives\Students\`
 	  * **`warning-error-p`**
 	  	* show default alert and any form validation errors
   	* is the `<span>` that contains the error message, not the whole `<p>` itself
