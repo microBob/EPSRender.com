@@ -18,6 +18,7 @@ $(".job-que-info-btn").click(function () {
     $("#job-que-info-modal").modal("show");
 });
 
+
 // SECTION: Contact Buttons
 let contacts = [
     "kyang@eastsideprep.org"
@@ -37,15 +38,42 @@ $("#feedback-btn").click(function () {
     });
 });
 
-// SECTION: Form items
-let $typeSelect = $("#type-select");
-let $blenderRenderSettings = $("#blender-render-settings");
 
-$typeSelect.change(function () {
+// SECTION: Debug
+$("#post-login-form").removeClass("d-none");
+$("#job-submit-btn").removeClass("d-none");
+
+
+// SECTION: Form items
+let $projectTypeSelect = $("#type-select");
+let $blenderRenderSettings = $("#blender-render-settings");
+let $blenderUseAllFramesCheck = $("#use-all-frames-check-box");
+let $endFrameInput = $("#end-frame-input");
+let $startFrameInput = $("#start-frame-input");
+
+// show blender render settings
+$projectTypeSelect.change(function () {
     let isHidingSettings = $blenderRenderSettings.hasClass("d-none");
-    if ($typeSelect.val() > 2 && isHidingSettings) {
-        $blenderRenderSettings.removeClass("d-none");
-    } else if ($typeSelect.val() < 3 && !isHidingSettings) {
-        $blenderRenderSettings.addClass("d-none");
+    if ($projectTypeSelect.val() > 2) {
+        showElement($blenderRenderSettings);
+    } else {
+        showElement($blenderRenderSettings, false);
+    }
+});
+
+// disable blender frame selection if use all is checked
+$blenderUseAllFramesCheck.change(function () {
+    if ($blenderUseAllFramesCheck.prop("checked")) {
+        if (!$startFrameInput.prop("disabled")) {
+            $startFrameInput.prop("disabled", true);
+            $endFrameInput.prop("disabled", true);
+            removeCSSClass($startFrameInput, "bg-warning");
+            removeCSSClass($endFrameInput, "bg-warning");
+        }
+    } else {
+        if ($startFrameInput.prop("disabled")) {
+            $startFrameInput.prop("disabled", false);
+            $endFrameInput.prop("disabled", false);
+        }
     }
 });
