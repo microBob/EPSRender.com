@@ -25,10 +25,10 @@
 	  * div with the rest of the job request form
 	  * shown when logged in
 	  * project type drop-down: **`type-select`**
-	  	* **`1`** = Premiere
-	  	* **`2`** = After Effects
-	  	* **`3`** = Cycles
-	  	* **`4`** = EEVEE
+	  	* **`0`** = Premiere
+	  	* **`1`** = After Effects
+	  	* **`2`** = Cycles
+	  	* **`3`** = EEVEE
 	  	* 3/4 (blender) will show frame selection settings
 	  * **`blender-render-settings`**
 	  	* div with blender frame selections settings
@@ -109,73 +109,109 @@
 |                 |                       |                          |
 |                 |                       |                          |
 
+## Server Enums (`.Enums.`)
+
+| Name                 | Enum Name            | Values                                                       | Notes                                                 |
+| -------------------- | -------------------- | ------------------------------------------------------------ | ----------------------------------------------------- |
+| Project Type         | `ProjectType`        | `0 = PremierePro`<br />`1 = AfterEffects`<br />`2 = BlenderCycles`<br />`3 = BlenderEEVEE` |                                                       |
+| Job Status           | `JobStatus`          | `0 = Unassigned`<br />`1 = Queued`<br />`2 = Rendering`      |                                                       |
+| Node Power Index     | `PowerIndex`         | `0 = Ultra`<br />`1 = High`<br />`2 = Mid`<br />`3 = Low`    | Tower 1<br />VR 1<br />Corsair 1, 2<br />DELL 1, 2, 3 |
+| Node Status          | `NodeStatus`         | `0 = Ready`<br />`1 = Rendering`<br />`2 = Offline`          |                                                       |
+| Node Response Status | `NodeResponseStatus` | `0 = Accept`<br />`1 = Completed`<br />`2 = Reject`          |                                                       |
+
 ## Models
 
 ### Server Meta (`.models.Meta`)
 
 | Property          | Variable Name | Type               | Notes                                                        |
 | ----------------- | ------------- | ------------------ | ------------------------------------------------------------ |
-| Job Queue         | `jobQueue`    | `List<JobRequest>` | holds requests their statuses                                |
+| Job Queue         | `jobQueue`    | `List<JobRequest>` | holds all current requests their statuses                    |
+| Action Queue      | `actionQueue` | `List<JobRequest>` | job requests that are immediately actionable.<br />pulled from and added to the render que when there are availabilities |
 | Blender Job Queue | `blenderJobs` | `List<JobRequest>` | hold the frames of the Blender jobs<br />pull from here when adding frames for (distributed) rendering |
 | Server nodes      | `serverNodes` | `List<Node>`       |                                                              |
 
 ### Job Request (`.models.JobRequest`)
 
-| Property                   | Variable Name              | Type            | Notes                                                        |
-| -------------------------- | -------------------------- | --------------- | ------------------------------------------------------------ |
-| User's email               | `useremail`                | `String`        | Identity of sender                                           |
-| Project Type               | `projectType`              | `int`           | `1` = Premiere Pro<br />`2` = After Effects<br />`3` = Blender Cycles<br />`4` = Blender EEVEE |
-| Blender Use All Frames     | `blenderUseAll`            | `boolean`       | `true` = use all frames<br />`false` = use start and end frames |
-| Blender Start Frame        | `blenderStartFrame`        | `int`           | (`>= 1`)<br />only read if `blenderUseAll = false`.          |
-| Blender End Frame          | `blenderEndFrame`          | `int`           | (`>= blenderStartFrame`)<br />only read if `blenderUseAll = false` |
-| Project Location           | `projectLocation`          | `String`        | URL to location on student drive.<br />must include: `\\drives\Students\` |
-| Job status                 | `status`                   | `int` /  `enum` | `0` = unassigned<br />`1` = in queue<br />`2` = Rendering    |
-| Blender frames rendered    | `blenderFramesRendered`    | `int`           | (`bSF <= n <= bEF`)<br />"`n` / total frames"<br />used as rendering status message |
-| Blender current frame      | `blenderCurrentFrame`      | `int`           | the frame this request represents                            |
-| Blender distributed render | `blenderDistributedRender` | `boolean`       | `true` = more than 1 node is rendering<br />`false` = `<=` 1 node rendering |
+| Property                   | Variable Name              | Type          | Notes                                                        |
+| -------------------------- | -------------------------- | ------------- | ------------------------------------------------------------ |
+| User's email               | `useremail`                | `String`      | Identity of sender                                           |
+| Project Type               | `projectType`              | `ProjectType` |                                                              |
+| Blender Use All Frames     | `blenderUseAll`            | `boolean`     | `true` = use all frames<br />`false` = use start and end frames |
+| Blender Start Frame        | `blenderStartFrame`        | `int`         | (`>= 1`)<br />only read if `blenderUseAll = false`.          |
+| Blender End Frame          | `blenderEndFrame`          | `int`         | (`>= blenderStartFrame`)<br />only read if `blenderUseAll = false` |
+| Project Location           | `projectLocation`          | `String`      | URL to location on student drive.<br />must include: `\\drives\Students\` |
+| Job status                 | `status`                   | `JobStatus`   |                                                              |
+| Blender frames rendered    | `blenderFramesRendered`    | `int`         | (`bSF <= n <= bEF`)<br />"`n` / total frames"<br />used as rendering status message |
+| Blender current frame      | `blenderCurrentFrame`      | `int`         | the frame this request represents                            |
+| Blender distributed amount | `blenderDistributedAmount` | `int`         | number of nodes working on this request                      |
 
 ### Server Node (`.models.Node`)
 
-| Property       | Variable Name | Type           | Notes                                                        |
-| -------------- | ------------- | -------------- | ------------------------------------------------------------ |
-| Node name      | `nodeName`    | `String`       | Used to display<br />must be unique                          |
-| Power Index    | `powerIndex`  | `int`          | `1` = Ultra High (Tower 1)<br />`2` = High (VR 1)<br />`3` = Mid (Corsair 1, 2)<br />`4` = Low (DELL 1, 2, 3) |
-| Node status    | `nodeStatus`  | `int` / `enum` | `0` = Ready<br />`1` = Rendering<br />`2` = Offline          |
-| Working on Job | `currentJob`  | `JobRequest`   |                                                              |
+| Property       | Variable Name | Type         | Notes                               |
+| -------------- | ------------- | ------------ | ----------------------------------- |
+| Node name      | `nodeName`    | `String`     | Used to display<br />must be unique |
+| Power Index    | `powerIndex`  | `PowerIndex` |                                     |
+| Node status    | `nodeStatus`  | `NodeStatus` |                                     |
+| Working on Job | `currentJob`  | `JobRequest` |                                     |
 
 ### Node Response (`.models.NodeResponse`)
 
-| Property     | Variable Name  | Type           | Notes                                                        |
-| ------------ | -------------- | -------------- | ------------------------------------------------------------ |
-| Node name    | `nodeName`     | `String`       | identifier                                                   |
-| Attached Job | `attachedJob`  | `jobRequest`   | job that this response pertains to                           |
-| Status       | `reportStatus` | `int` / `enum` | `0` = taking this job, set self status to rendering with this job<br />`1` = completed this job<br />`2` = rejected this job (most likely invalid location) |
+| Property     | Variable Name  | Type                 | Notes                              |
+| ------------ | -------------- | -------------------- | ---------------------------------- |
+| Node name    | `nodeName`     | `String`             | identifier                         |
+| Attached Job | `attachedJob`  | `jobRequest`         | job that this response pertains to |
+| Status       | `reportStatus` | `NodeResponseStatus` |                                    |
 
 ## Serving logic
 
-1. Get new `JobRequest` (from Front-end)
-	1. If Adobe, immediately add to `jobQueue`
-	2. If Blender, create `jobRequest` class for each frame and  immediately add first to `jobQueue`
-		1. Add other blender frames to `blenderJobs`
-2. On node register taking a job (from RabbitMQ)
-	1. set node `currentJob` to the `attachedJob`
-	2. set `nodeStatus` to rendering
-	3. set related `jobRequest` in the queue listing to rendering
-		1. "rendering"
-		2. "n / total <u>rendered</u>"
-3. On node register completed job (from RabbitMQ)
-	1. set node `currentJob` to `null`
-	2. set `nodeStatus` to ready
-	3. set related `jobRequest` in the queue listing
-		1. remove if Adobe and email
-		2. If Blender: increment/set "n" in the rendered message.
-			1. if all rendered, remove from listing and email
-			2. if not and , add next frame to `jobQueue` as priority
-4. On node register rejected job (from RabbitMQ)
-	1. if Adobe: delete and email
-	2. if Blender: find all and delete, then email
-5. On 2,3,4:
-	1. 
+### Get new `JobRequest` (from Front-end)
+
+1. add to `Meta.jobQueue`
+2. If Adobe, immediately add to `Meta.actionQueue`
+3. If Blender, create `jobRequest` class for each frame and  immediately add first to `Meta.actionQueue`
+4. Add other blender frames to `Meta.blenderJobs`
+
+### Add Jobs to RabbitMQ's `render-jobs`
+
+1. All assumes `Meta.serverNodes` has at least one that is ready
+2. If `Meta.blenderJobs.count != 0`
+	1. look for in progress blender jobs
+	2. if `JobRequest.blenderDistributedAmount > 0 && Meta.actionQueue.count != 0`: pop next `Meta.actionQueue` item into `render-jobs`
+	3. if `JobRequest.blenderDistributedAmount == 0 && Meta.actionQueue.count == 0`: pop next blender frame from this request into `render-jobs` as <u>priority</u>
+3. If nothing happened from #2: pop the top job from `Meta.actionQueue` into RabbitMQ's `render-jobs`
+
+### On node register taking a job (from RabbitMQ)
+
+  1. set node `currentJob` to the `attachedJob`
+  2. set `nodeStatus` to rendering
+  3. set related `jobRequest` in the queue listing to rendering
+			   1. "rendering"
+	   2. "n / total <u>rendered</u>"
+
+### On node register completed job (from RabbitMQ)
+
+  1. set node `currentJob` to `null`
+  2. set `serverNodes.<requested node>.nodeStatus` to ready
+  3. set related `jobRequest` in the queue listing
+   4. remove if Adobe and email
+   5. If Blender: increment/set "n" in the rendered message.
+	     		1. if all rendered, remove from listing and email
+6. run **Add Job**
+
+### On node register rejected job (from RabbitMQ)
+
+  1. if Adobe: delete and email
+  2. if Blender: find all and delete, then email
+  3. set `serverNodes.<requested node>.nodeStatus` to ready
+  4. run **Add Job** 
+
+## Special Items
+
+### Get the start and end frames of a blender project
+
+bash command: `blender -b {blender file to render} --python {path/to/}getFrames.py | grep -w 'EPRenderInterestedFrames:'`
+
+* returns `EPRenderInterestedFrames: start,end`
 
 # Python (Client)
 
