@@ -47,13 +47,13 @@
 
 	* **`job-que-table`**
 
-		* displayed the job que
+		* displayed the job queue
 	
 		* | User | Type | Time Added | Status                       |
 			| ---- | ---- | ---------- | ---------------------------- |
 			|      |      |            | **`x`**/**`total`** rendered |
 		|      |      |            | Rendering                    |
-			|      |      |            | Place **`#`** in Que         |
+			|      |      |            | Place **`#`** in Queue       |
 
 	* **`server-status-table`**
 
@@ -111,14 +111,36 @@
 
 ## Models
 
-### Job Request (`.models.jobRequest`)
+### Server Meta (`.models.ServerMeta`)
 
-| Property               | Variable Name       | Type                         | Notes                                                        |
-| ---------------------- | ------------------- | ---------------------------- | ------------------------------------------------------------ |
-| User's email           | `useremail`         | String                       | Identity of sender                                           |
-| Project Type           | `projectType`       | int (1-4)                    | `1` = Premiere Pro<br />`2` = After Effects<br />`3` = Blender Cycles<br />`4` = Blender EEVEE |
-| Blender Use All Frames | `blenderUseAll`     | boolean                      | `true` = use all frames<br />`false` = use start and end frames |
-| Blender Start Frame    | `blenderStartFrame` | int (`>= 1`)                 | only read if `blenderUseAll = false`.                        |
-| Blender End Frame      | `blenderEndFrame`   | int (`>= blenderStartFrame`) | only read if `blenderUseAll = false`                         |
-| Project Location       | `projectLocation`   | String                       | URL to location on student drive                             |
+| Property  | Variable Name | Type               | Notes |
+| --------- | ------------- | ------------------ | ----- |
+| Job Queue | `jobQueue`    | `List<JobRequest>` |       |
+|           |               |                    |       |
+|           |               |                    |       |
+
+
+
+### Job Request (`.models.JobRequest`)
+
+| Property                   | Variable Name              | Type            | Notes                                                        |
+| -------------------------- | -------------------------- | --------------- | ------------------------------------------------------------ |
+| User's email               | `useremail`                | `String`        | Identity of sender                                           |
+| Project Type               | `projectType`              | `int`           | `1` = Premiere Pro<br />`2` = After Effects<br />`3` = Blender Cycles<br />`4` = Blender EEVEE |
+| Blender Use All Frames     | `blenderUseAll`            | `boolean`       | `true` = use all frames<br />`false` = use start and end frames |
+| Blender Start Frame        | `blenderStartFrame`        | `int`           | (`>= 1`)<br />only read if `blenderUseAll = false`.          |
+| Blender End Frame          | `blenderEndFrame`          | `int`           | (`>= blenderStartFrame`)<br />only read if `blenderUseAll = false` |
+| Project Location           | `projectLocation`          | `String`        | URL to location on student drive.<br />must include: `\\drives\Students\` |
+| Job status                 | `status`                   | `int` /  `enum` | `0` = unassigned<br />`1` = in queue<br />`2` = Rendering    |
+| Blender frames rendered    | `blenderFramesRendered`    | `int`           | (`bSF <= n <= bEF`)<br />"`n` / total frames"<br />used as rendering status message |
+| Blender distributed render | `blenderDistributedRender` | `boolean`       | `true` = more than 1 node is rendering<br />`false` = `<=` 1 node rendering |
+
+### Server Node (`models.ServerNode`)
+
+| Property       | Variable Name | Type           | Notes                                                        |
+| -------------- | ------------- | -------------- | ------------------------------------------------------------ |
+| Node name      | `nodeName`    | `String`       | Used to display<br />must be unique                          |
+| Power Index    | `powerIndex`  | `int`          | `1` = Ultra High (Tower 1)<br />`2` = High (VR 1)<br />`3` = Mid (Corsair 1, 2)<br />`4` = Low (DELL 1, 2, 3) |
+| Node status    | `nodeStatus`  | `int` / `enum` | `0` = Ready<br />`1` = Rendering<br />`2` = Offline          |
+| Working on Job | `currentJob`  | `JobRequest`   |                                                              |
 

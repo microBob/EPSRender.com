@@ -1,5 +1,5 @@
 package com.kyang.eprender.models;
 
-public class jobRequest {
+public class JobRequest {
     
 }
