@@ -1,4 +1,4 @@
-# HTML
+# HTML (Front-end)
 
 ## Baked IDs and Values
 
@@ -87,7 +87,7 @@
 | danger             | red                              | **`text-danger`**  |
 | success            | green                            | **`text-success`** |
 
-# Java
+# Java (Server)
 
 ## Routes
 
@@ -111,15 +111,13 @@
 
 ## Models
 
-### Server Meta (`.models.ServerMeta`)
+### Server Meta (`.models.Meta`)
 
-| Property  | Variable Name | Type               | Notes |
-| --------- | ------------- | ------------------ | ----- |
-| Job Queue | `jobQueue`    | `List<JobRequest>` |       |
-|           |               |                    |       |
-|           |               |                    |       |
-
-
+| Property          | Variable Name | Type               | Notes                                                        |
+| ----------------- | ------------- | ------------------ | ------------------------------------------------------------ |
+| Job Queue         | `jobQueue`    | `List<JobRequest>` | holds requests their statuses                                |
+| Blender Job Queue | `blenderJobs` | `List<JobRequest>` | hold the frames of the Blender jobs<br />pull from here when adding frames for (distributed) rendering |
+| Server nodes      | `serverNodes` | `List<Node>`       |                                                              |
 
 ### Job Request (`.models.JobRequest`)
 
@@ -133,9 +131,10 @@
 | Project Location           | `projectLocation`          | `String`        | URL to location on student drive.<br />must include: `\\drives\Students\` |
 | Job status                 | `status`                   | `int` /  `enum` | `0` = unassigned<br />`1` = in queue<br />`2` = Rendering    |
 | Blender frames rendered    | `blenderFramesRendered`    | `int`           | (`bSF <= n <= bEF`)<br />"`n` / total frames"<br />used as rendering status message |
+| Blender current frame      | `blenderCurrentFrame`      | `int`           | the frame this request represents                            |
 | Blender distributed render | `blenderDistributedRender` | `boolean`       | `true` = more than 1 node is rendering<br />`false` = `<=` 1 node rendering |
 
-### Server Node (`models.ServerNode`)
+### Server Node (`.models.Node`)
 
 | Property       | Variable Name | Type           | Notes                                                        |
 | -------------- | ------------- | -------------- | ------------------------------------------------------------ |
@@ -143,4 +142,53 @@
 | Power Index    | `powerIndex`  | `int`          | `1` = Ultra High (Tower 1)<br />`2` = High (VR 1)<br />`3` = Mid (Corsair 1, 2)<br />`4` = Low (DELL 1, 2, 3) |
 | Node status    | `nodeStatus`  | `int` / `enum` | `0` = Ready<br />`1` = Rendering<br />`2` = Offline          |
 | Working on Job | `currentJob`  | `JobRequest`   |                                                              |
+
+### Node Response (`.models.NodeResponse`)
+
+| Property     | Variable Name  | Type           | Notes                                                        |
+| ------------ | -------------- | -------------- | ------------------------------------------------------------ |
+| Node name    | `nodeName`     | `String`       | identifier                                                   |
+| Attached Job | `attachedJob`  | `jobRequest`   | job that this response pertains to                           |
+| Status       | `reportStatus` | `int` / `enum` | `0` = taking this job, set self status to rendering with this job<br />`1` = completed this job<br />`2` = rejected this job (most likely invalid location) |
+
+## Serving logic
+
+1. Get new `JobRequest` (from Front-end)
+	1. If Adobe, immediately add to `jobQueue`
+	2. If Blender, create `jobRequest` class for each frame and  immediately add first to `jobQueue`
+		1. Add other blender frames to `blenderJobs`
+2. On node register taking a job (from RabbitMQ)
+	1. set node `currentJob` to the `attachedJob`
+	2. set `nodeStatus` to rendering
+	3. set related `jobRequest` in the queue listing to rendering
+		1. "rendering"
+		2. "n / total <u>rendered</u>"
+3. On node register completed job (from RabbitMQ)
+	1. set node `currentJob` to `null`
+	2. set `nodeStatus` to ready
+	3. set related `jobRequest` in the queue listing
+		1. remove if Adobe and email
+		2. If Blender: increment/set "n" in the rendered message.
+			1. if all rendered, remove from listing and email
+			2. if not and , add next frame to `jobQueue` as priority
+4. On node register rejected job (from RabbitMQ)
+	1. if Adobe: delete and email
+	2. if Blender: find all and delete, then email
+5. On 2,3,4:
+	1. 
+
+# Python (Client)
+
+## Working Logic
+
+1. 
+
+# RabbitMQ (Server)
+
+## Queues
+
+| Name            | Technical Name    | Notes                                                        |
+| --------------- | ----------------- | ------------------------------------------------------------ |
+| Render Jobs     | `render-jobs`     | Any immediately render-able jobs used to deliver jobs to any open/available nodes |
+| Back from Nodes | `back-from-nodes` | used to send messages from nodes back to the server (like when a job is completed) |
 
