@@ -67,7 +67,7 @@
 			|      | Ready     |
 				|      | Rendering |
 
-	* **`resync-server-btn`**
+	* **`update-server-info-btn`**
 	
 		* pull updates from server to repopulate the tables
 
