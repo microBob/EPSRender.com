@@ -26,7 +26,7 @@
             <div class="col-md-12">
                 <div class="shadow" style="padding: 15px;">
                     <h2>New Job Request</h2>
-                    <form style="padding: 0px;">
+                    <form style="padding: 0px;" id="new-job-request-form">
                         <!-- Start: Login -->
                         <div class="form-group">
                             <fieldset class="border rounded shadow-sm" style="padding: 15px;">
@@ -75,12 +75,12 @@
                                         <!-- Start: Type Select -->
                                         <div class="col-auto"><select class="form-control" id="type-select">
                                             <optgroup label="Adobe Media Encoder">
-                                                <option value="1" selected="">Adobe Premiere Pro (.prproj)</option>
-                                                <option value="2">Adobe After Effects (.aep, .aepx)</option>
+                                                <option value="0" selected="">Adobe Premiere Pro (.prproj)</option>
+                                                <option value="1">Adobe After Effects (.aep, .aepx)</option>
                                             </optgroup>
                                             <optgroup label="Blender">
-                                                <option value="3">Blender 2.83.1 Cycles (.blend)</option>
-                                                <option value="4">Blender 2.83.1 EEVEE (.blend)</option>
+                                                <option value="2">Blender 2.83.1 Cycles (.blend)</option>
+                                                <option value="3">Blender 2.83.1 EEVEE (.blend)</option>
                                             </optgroup>
                                         </select></div>
                                         <!-- End: Type Select -->
@@ -100,14 +100,18 @@
                                             </div>
                                             <div class="col"><input class="form-control" type="number"
                                                                     id="start-frame-input" placeholder="1"
-                                                                    onchange="completionValidation()"></div>
+                                                                    onchange="completionValidation()"
+                                                                    onkeypress="return (event.charCode === 8 || event.charCode === 0 || event.charCode === 13) ? null : event.charCode >= 48 && event.charCode <= 57">
+                                            </div>
                                         </div>
                                         <div class="form-row" style="margin-top: 10px;">
                                             <div class="col-4"><label class="col-form-label">End Frame:&nbsp;</label>
                                             </div>
                                             <div class="col"><input class="form-control" type="number"
                                                                     id="end-frame-input" placeholder="250"
-                                                                    onchange="completionValidation()"></div>
+                                                                    onchange="completionValidation()"
+                                                                    onkeypress="return (event.charCode === 8 || event.charCode === 0 || event.charCode === 13) ? null : event.charCode >= 48 && event.charCode <= 57">
+                                            </div>
                                         </div>
                                         <div class="form-check" style="margin-top: 10px;"><input
                                                 class="form-check-input" type="checkbox" id="use-all-frames-check-box"

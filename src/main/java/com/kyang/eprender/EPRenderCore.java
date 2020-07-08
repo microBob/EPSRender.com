@@ -1,11 +1,18 @@
 package com.kyang.eprender;
 
+import com.kyang.eprender.Enums.JobStatus;
+import com.kyang.eprender.Enums.ProjectType;
+import com.kyang.eprender.models.JobRequest;
+import com.kyang.eprender.models.Meta;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
+
+import java.util.Objects;
 
 public class EPRenderCore {
 
     // Global vars
+    private static final Meta serverMeta = new Meta();
 
     public static void main(String[] args) {
         Javalin app = Javalin.create(config -> config.addStaticFiles("/public")).start(7000);
@@ -46,6 +53,57 @@ public class EPRenderCore {
             }
         });
         // SECTION ^: Login
+
+        // SECTION: Adding a new Job
+        app.put("/add_new_job", ctx -> {
+            System.out.println("[Route Requested]: /add_new_job");
+
+            String useremail = getUserEmail(ctx);
+            int projectTypeInt = Integer.parseInt(Objects.requireNonNull(ctx.queryParam("projectType")));
+            String projectLocation = ctx.queryParam("projectLocation");
+
+            if (projectTypeInt > 1) {
+                boolean blenderUseAllFrames = Boolean.parseBoolean(ctx.queryParam("blenderUseAll"));
+                if (!blenderUseAllFrames) {
+                    int blenderStartFrame = Integer.parseInt(Objects.requireNonNull(ctx.queryParam("blenderStartFrame")));
+                    int blenderEndFrame = Integer.parseInt(Objects.requireNonNull(ctx.queryParam("blenderEndFrame")));
+
+                    for (int i = blenderStartFrame; i <= blenderEndFrame; i++) {
+                        JobRequest jobRequest = new JobRequest(useremail, projectTypeInt, projectLocation, blenderStartFrame, blenderEndFrame);
+                        jobRequest.setBlenderCurrentFrame(i);
+
+                        if (i == blenderStartFrame) {
+                            jobRequest.setStatus(JobStatus.Queued);
+
+                            serverMeta.addToActionQueue(jobRequest);
+                            serverMeta.addToJobQueue(jobRequest);
+                        } else {
+                            serverMeta.addToBlenderJobs(jobRequest);
+                        }
+                    }
+                } else {
+                    JobRequest jobRequest = new JobRequest(useremail, projectTypeInt, projectLocation);
+                    jobRequest.setBlenderCurrentFrame(-1);
+
+                    jobRequest.setStatus(JobStatus.Queued);
+
+                    serverMeta.addToActionQueue(jobRequest);
+                    serverMeta.addToJobQueue(jobRequest);
+                }
+            } else {
+                JobRequest jobRequest = new JobRequest(useremail, projectTypeInt, projectLocation);
+
+                jobRequest.setStatus(JobStatus.Queued);
+
+                serverMeta.addToActionQueue(jobRequest);
+                serverMeta.addToJobQueue(jobRequest);
+            }
+
+            System.out.println("[Debug]: JobQueue count: "+serverMeta.getJobQueue().size());
+            System.out.println("[Debug]: ActionQueue count: "+serverMeta.getActionQueue().size());
+            System.out.println("[Debug]: BlenderJobs count: "+serverMeta.getBlenderJobs().size());
+        });
+        // SECTION ^: Adding a new Job
 
     }
 

@@ -173,3 +173,45 @@ function completionValidation(showIssue = false) {
         }
     }
 }
+
+$("#new-job-request-form").submit(function () {
+    console.log("Sending new job request!");
+
+    let projectType = $($projectTypeSelect).val();
+    let blenderUseAll, blenderStartFrame, blenderEndFrame;
+    let projectLocation = $($projectLocationInput).val();
+    if (projectType > 1) {
+        blenderUseAll = $($blenderUseAllFramesCheck).prop("checked");
+        if (!blenderUseAll) {
+            blenderStartFrame = $($startFrameInput).val();
+            blenderEndFrame = $($endFrameInput).val();
+
+            request({
+                url: "/add_new_job?projectType=" + projectType + "&blenderUseAll=false&blenderStartFrame=" + blenderStartFrame + "&blenderEndFrame=" + blenderEndFrame + "&projectLocation=" + projectLocation,
+                verb: "PUT"
+            }).then(data => {
+                console.log("Add job successful!");
+            }).catch(onerror => {
+                console.log("Add job Error: " + onerror);
+            });
+        } else {
+            request({
+                url: "/add_new_job?projectType=" + projectType + "&blenderUseAll=true&projectLocation=" + projectLocation,
+                verb: "PUT"
+            }).then(data => {
+                console.log("Add job successful!");
+            }).catch(onerror => {
+                console.log("Add job Error: " + onerror);
+            });
+        }
+    } else {
+        request({
+            url: "/add_new_job?projectType=" + projectType + "&projectLocation=" + projectLocation,
+            verb: "PUT"
+        }).then(data => {
+            console.log("Add job successful!");
+        }).catch(onerror => {
+            console.log("Add job Error: " + onerror);
+        });
+    }
+});

@@ -4,19 +4,17 @@ import com.kyang.eprender.Enums.ProjectType;
 import com.kyang.eprender.Enums.JobStatus;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
 
 public class JobRequest {
     // SECTION: Properties
     private String useremail;
     private ProjectType projectType;
-    private boolean blenderUseAll;
+    private boolean blenderUseAll = false;
     private int blenderStartFrame;
     private int blenderEndFrame;
     private String projectFile;
     private JobStatus status;
-    private int blenderFramesRendered;
+    private int blenderFramesRendered = 0;
     private int blenderCurrentFrame;
     private int blenderDistributedAmount;
 
@@ -27,53 +25,19 @@ public class JobRequest {
         this.useremail = useremail;
         this.projectType = ProjectType.values()[projectType];
         this.projectFile = IdentifyProjectFile(projectLocation, this.projectType);
-        status = JobStatus.Unassigned;
 
         if (projectType > 1) { // using blender type
-            this.blenderUseAll = true;
-
-            // extract start and end frames
-            try {
-                List<String> commands = new ArrayList<>();
-//                commands.add("\"/home/microbobu/Applications/blender-2.83.1-linux64/blender\"");
-//                commands.add("-b");
-//                commands.add("\""+this.projectFile+"\"");
-//                commands.add("--python");
-//                commands.add("\"/home/microbobu/Documents/EPS Render Server/EPRender.com/src/main/resources/getFrames.py\"");
-//                commands.add("|");
-//                commands.add("grep");
-//                commands.add("-w");
-//                commands.add("\"EPRenderInterestedFrames:\"");
-                commands.add("/home/microbobu/Documents/EPS Render Server/EPRender.com/src/main/resources/getFrames.sh");
-                commands.add("\""+this.projectFile+"\"");
-
-                ProcessBuilder pb = new ProcessBuilder(commands);
-
-//                Runtime rt = Runtime.getRuntime();
-                Process proc = pb.start();
-//                String command = "/home/microbobu/Applications/blender-2.83.1-linux64/blender -b '" + this.projectFile + "' --python '/home/microbobu/Documents/EPS Render Server/EPRender.com/src/main/resources/getFrames.py'";
-//                String command = "/home/microbobu/Applications/blender-2.83.1-linux64/blender -b '" + this.projectFile + "'";
-//                Process proc = rt.exec(command);
-
-                BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
-                List<String> outputLines = new ArrayList<>();
-                String output;
-                while ((output = stdInput.readLine()) != null) {
-                    outputLines.add(output);
-                }
-                for (String line : outputLines) {
-                    if (line.contains("EPRenderInterestedFrames:")) {
-                        String[] frames = line.split("\\D+");
-                        blenderStartFrame = Integer.parseInt(frames[0]);
-                        blenderEndFrame = Integer.parseInt(frames[1]);
-                        break;
-                    }
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-                // TODO: add abort
-            }
+            blenderUseAll = true;
         }
+    }
+
+    // for blender with specific frames
+    public JobRequest(String useremail, int projectType, String projectLocation, int blenderStartFrame, int blenderEndFrame) {
+        this.useremail = useremail;
+        this.projectType = ProjectType.values()[projectType];
+        this.projectFile = IdentifyProjectFile(projectLocation, this.projectType);
+        this.blenderStartFrame = blenderStartFrame;
+        this.blenderEndFrame = blenderEndFrame;
     }
 
 

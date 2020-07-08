@@ -2,6 +2,10 @@
 
 ## Baked IDs and Values
 
+* **`new-job-request-form`**
+
+	* form element that holds all new request elements
+	
 * **`login-row`**
 
 	* shown when logged out
@@ -42,6 +46,7 @@
 	  	* minimum URL (to Student drive): `\\drives\Students\`
 	  * **`warning-error-p`**
 	  	* show default alert and any form validation errors
+	
   	* is the `<span>` that contains the error message, not the whole `<p>` itself
 	  * form submit button: **`job-submit-btn`**
 
@@ -132,19 +137,19 @@
 
 ### Job Request (`.models.JobRequest`)
 
-| Property                                         | Variable Name              | Type          | Notes                                                        |
-| ------------------------------------------------ | -------------------------- | ------------- | ------------------------------------------------------------ |
-| User's email                                     | `useremail`                | `String`      | Identity of sender                                           |
-| Project Type                                     | `projectType`              | `ProjectType` |                                                              |
-| Blender Use All Frames                           | `blenderUseAll`            | `boolean`     | `true` = use all frames<br />`false` = use start and end frames |
-| Blender Start Frame                              | `blenderStartFrame`        | `int`         | (`>= 1`)<br />only read if `blenderUseAll = false`.          |
-| Blender End Frame                                | `blenderEndFrame`          | `int`         | (`>= blenderStartFrame`)<br />only read if `blenderUseAll = false` |
-| Project File                                     | `projectFile`              | String        | URL to specific project file<br />generated after received   |
-| *<u>{Input parameter}</u>*<br />Project Location | `projectLocation`          | `String`      | URL to location on student drive.<br />must include: `\\drives\Students\`<br />generated from `projectFile` |
-| Job status                                       | `status`                   | `JobStatus`   |                                                              |
-| Blender frames rendered                          | `blenderFramesRendered`    | `int`         | (`bSF <= n <= bEF`)<br />"`n` / total frames"<br />used as rendering status message |
-| Blender current frame                            | `blenderCurrentFrame`      | `int`         | the frame this request represents                            |
-| Blender distributed amount                       | `blenderDistributedAmount` | `int`         | number of nodes working on this request                      |
+| Property                                               | Variable Name              | Type          | Notes                                                        |
+| ------------------------------------------------------ | -------------------------- | ------------- | ------------------------------------------------------------ |
+| *<u>{Input parameter}</u>*<br />User's email           | `useremail`                | `String`      | Identity of sender                                           |
+| *<u>{Input parameter}</u>*<br />Project Type           | `projectType`              | `ProjectType` |                                                              |
+| *<u>{Input parameter}</u>*<br />Blender Use All Frames | `blenderUseAll`            | `boolean`     | `true` = use all frames<br />`false` = use start and end frames |
+| *<u>{Input parameter}</u>*<br />Blender Start Frame    | `blenderStartFrame`        | `int`         | (`>= 1`)<br />only read if `blenderUseAll = false`.          |
+| *<u>{Input parameter}</u>*<br />Blender End Frame      | `blenderEndFrame`          | `int`         | (`>= blenderStartFrame`)<br />only read if `blenderUseAll = false` |
+| Project File                                           | `projectFile`              | String        | URL to specific project file<br />generated after received   |
+| *<u>{Input parameter}</u>*<br />Project Location       | `projectLocation`          | `String`      | URL to location on student drive.<br />must include: `\\drives\Students\`<br />generated from `projectFile` |
+| Job status                                             | `status`                   | `JobStatus`   |                                                              |
+| Blender frames rendered                                | `blenderFramesRendered`    | `int`         | (`bSF <= n <= bEF`)<br />"`n` / total frames"<br />used as rendering status message |
+| Blender current frame                                  | `blenderCurrentFrame`      | `int`         | the frame this request represents                            |
+| Blender distributed amount                             | `blenderDistributedAmount` | `int`         | number of nodes working on this request                      |
 
 ### Server Node (`.models.Node`)
 
@@ -171,7 +176,8 @@
 2. If Adobe, immediately add to `Meta.actionQueue`
 3. If Blender
 	1. if use all frames
-		1. immediately create and add a `jobRequest` for frame 1 to `meta.actionQueue`
+		1. immediately create and add a `jobRequest` for frame `-1` to `meta.actionQueue`
+			1. use `-1` to signal that this needs to be checked
 		2. wait for response before creating other frames
 	2. if given explicit frames
 		1. create `jobRequest` class for each frame and immediately add first to `Meta.actionQueue`

@@ -77,8 +77,3 @@ $blenderUseAllFramesCheck.change(function () {
         }
     }
 });
-
-// Limit blender frame settings inputs
-$("#start-frame-input, #end-frame-input").onkeypress(function () {
-    return (event.charCode === 8 || event.charCode === 0 || event.charCode === 13) ? null : event.charCode >= 48 && event.charCode <= 57;
-})
