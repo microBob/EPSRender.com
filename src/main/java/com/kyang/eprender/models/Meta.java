@@ -6,6 +6,7 @@ public class Meta {
     private ArrayList<JobRequest> jobQueue = new ArrayList<>();
     private ArrayList<JobRequest> actionQueue = new ArrayList<>();
     private ArrayList<JobRequest> blenderJobs = new ArrayList<>();
+    private ArrayList<Node> serverNodes = new ArrayList<>();
 
     public ArrayList<JobRequest> getJobQueue() {
         return jobQueue;
@@ -41,5 +42,21 @@ public class Meta {
 
     public void addToBlenderJobs(JobRequest jobRequest) {
         this.blenderJobs.add(jobRequest);
+    }
+
+    public ArrayList<Node> getServerNodes() {
+        return serverNodes;
+    }
+
+    public void setServerNodes(ArrayList<Node> serverNodes) {
+        this.serverNodes = serverNodes;
+    }
+
+    public void addServerNode(Node serverNode) {
+        this.serverNodes.add(serverNode);
+    }
+
+    public void removeServerNode(Node serverNode) {
+        this.serverNodes.remove(serverNode);
     }
 }

@@ -156,6 +156,7 @@
 | Property       | Variable Name | Type         | Notes                               |
 | -------------- | ------------- | ------------ | ----------------------------------- |
 | Node name      | `nodeName`    | `String`     | Used to display<br />must be unique |
+| IP Address     | `ipAddress`   | `String`     | unique identifier                   |
 | Power Index    | `powerIndex`  | `PowerIndex` |                                     |
 | Node status    | `nodeStatus`  | `NodeStatus` |                                     |
 | Working on Job | `currentJob`  | `JobRequest` |                                     |

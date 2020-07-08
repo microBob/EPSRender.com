@@ -4,6 +4,7 @@ import com.kyang.eprender.Enums.JobStatus;
 import com.kyang.eprender.Enums.ProjectType;
 import com.kyang.eprender.models.JobRequest;
 import com.kyang.eprender.models.Meta;
+import com.kyang.eprender.models.Node;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 
@@ -18,6 +19,11 @@ public class EPRenderCore {
         Javalin app = Javalin.create(config -> config.addStaticFiles("/public")).start(7000);
 
         app.get("/test", ctx -> ctx.result("Test again"));
+
+
+        // SECTION: Register nodes
+        serverMeta.addServerNode(new Node("Tester 1", "10.68.68.111", 3));
+
 
         //SECTION: Login
         app.get("/login", ctx -> {

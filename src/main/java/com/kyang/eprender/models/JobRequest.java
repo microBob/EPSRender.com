@@ -109,24 +109,6 @@ public class JobRequest {
                 return targetFile.toString();
             }
         }
-
-//        File[] files = projectDir.listFiles(new FilenameFilter() {
-//            @Override
-//            public boolean accept(File dir, String name) {
-//                switch (projectType) {
-//                    case PremierePro:
-//                        return name.endsWith(".prproj");
-//                    case AfterEffects:
-//                        return name.endsWith(".aep") || name.endsWith(".aepx");
-//                    default: // assume using blender
-//                        return name.endsWith(".blend");
-//                }
-//            }
-//        });
-
-//        System.out.println("[Debug]: toPath().toString() => " + files[0].toPath().toString());
-//        System.out.println("[Debug]: toString() => " + files[0].toString());
-//        return files[0].toPath().toString();
     }
 
 
