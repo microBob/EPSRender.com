@@ -132,18 +132,19 @@
 
 ### Job Request (`.models.JobRequest`)
 
-| Property                   | Variable Name              | Type          | Notes                                                        |
-| -------------------------- | -------------------------- | ------------- | ------------------------------------------------------------ |
-| User's email               | `useremail`                | `String`      | Identity of sender                                           |
-| Project Type               | `projectType`              | `ProjectType` |                                                              |
-| Blender Use All Frames     | `blenderUseAll`            | `boolean`     | `true` = use all frames<br />`false` = use start and end frames |
-| Blender Start Frame        | `blenderStartFrame`        | `int`         | (`>= 1`)<br />only read if `blenderUseAll = false`.          |
-| Blender End Frame          | `blenderEndFrame`          | `int`         | (`>= blenderStartFrame`)<br />only read if `blenderUseAll = false` |
-| Project Location           | `projectLocation`          | `String`      | URL to location on student drive.<br />must include: `\\drives\Students\` |
-| Job status                 | `status`                   | `JobStatus`   |                                                              |
-| Blender frames rendered    | `blenderFramesRendered`    | `int`         | (`bSF <= n <= bEF`)<br />"`n` / total frames"<br />used as rendering status message |
-| Blender current frame      | `blenderCurrentFrame`      | `int`         | the frame this request represents                            |
-| Blender distributed amount | `blenderDistributedAmount` | `int`         | number of nodes working on this request                      |
+| Property                                         | Variable Name              | Type          | Notes                                                        |
+| ------------------------------------------------ | -------------------------- | ------------- | ------------------------------------------------------------ |
+| User's email                                     | `useremail`                | `String`      | Identity of sender                                           |
+| Project Type                                     | `projectType`              | `ProjectType` |                                                              |
+| Blender Use All Frames                           | `blenderUseAll`            | `boolean`     | `true` = use all frames<br />`false` = use start and end frames |
+| Blender Start Frame                              | `blenderStartFrame`        | `int`         | (`>= 1`)<br />only read if `blenderUseAll = false`.          |
+| Blender End Frame                                | `blenderEndFrame`          | `int`         | (`>= blenderStartFrame`)<br />only read if `blenderUseAll = false` |
+| Project File                                     | `projectFile`              | String        | URL to specific project file<br />generated after received   |
+| *<u>{Input parameter}</u>*<br />Project Location | `projectLocation`          | `String`      | URL to location on student drive.<br />must include: `\\drives\Students\`<br />generated from `projectFile` |
+| Job status                                       | `status`                   | `JobStatus`   |                                                              |
+| Blender frames rendered                          | `blenderFramesRendered`    | `int`         | (`bSF <= n <= bEF`)<br />"`n` / total frames"<br />used as rendering status message |
+| Blender current frame                            | `blenderCurrentFrame`      | `int`         | the frame this request represents                            |
+| Blender distributed amount                       | `blenderDistributedAmount` | `int`         | number of nodes working on this request                      |
 
 ### Server Node (`.models.Node`)
 
@@ -168,7 +169,12 @@
 
 1. add to `Meta.jobQueue`
 2. If Adobe, immediately add to `Meta.actionQueue`
-3. If Blender, create `jobRequest` class for each frame and  immediately add first to `Meta.actionQueue`
+3. If Blender
+	1. if use all frames
+		1. immediately create and add a `jobRequest` for frame 1 to `meta.actionQueue`
+		2. wait for response before creating other frames
+	2. if given explicit frames
+		1. create `jobRequest` class for each frame and immediately add first to `Meta.actionQueue`
 4. Add other blender frames to `Meta.blenderJobs`
 
 ### Add Jobs to RabbitMQ's `render-jobs`
@@ -187,6 +193,9 @@
   3. set related `jobRequest` in the queue listing to rendering
 			   1. "rendering"
 	   2. "n / total <u>rendered</u>"
+     4. If `jobRequest` was the first frame in a blender render all
+             1. read in `blenderStartFrame` and `blenderEndFrame`
+             2. create extra frames as detailed in getting new `JobRequest`
 
 ### On node register completed job (from RabbitMQ)
 
