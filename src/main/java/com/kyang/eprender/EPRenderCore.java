@@ -125,4 +125,11 @@ public class EPRenderCore {
         return ctx.sessionAttribute("useremail");
     }
     // SECTION ^: Session management
+
+
+    // SECTION: Delegate Methods
+
+    public static Meta getServerMeta() {
+        return serverMeta;
+    }
 }
