@@ -1,6 +1,7 @@
 package com.kyang.eprender.models;
 
 import com.kyang.eprender.EPRenderCore;
+import com.kyang.eprender.Enums.JobStatus;
 import com.kyang.eprender.Enums.NodeStatus;
 import com.kyang.eprender.Enums.ProjectType;
 
@@ -12,6 +13,9 @@ public class Meta {
     private ArrayList<JobRequest> blenderJobs = new ArrayList<>();
     private ArrayList<Node> serverNodes = new ArrayList<>();
 
+
+    // SECTION: delegate methods
+
     public ArrayList<JobRequest> getJobQueue() {
         return jobQueue;
     }
@@ -21,6 +25,7 @@ public class Meta {
     }
 
     public void addToJobQueue(JobRequest jobRequest) {
+        jobRequest.setStatus(JobStatus.Queued);
         this.jobQueue.add(jobRequest);
     }
 
@@ -33,45 +38,16 @@ public class Meta {
     }
 
     public void addToActionQueue(JobRequest jobRequest) {
-        this.actionQueue.add(jobRequest);
+        jobRequest.setStatus(JobStatus.Queued);
+        this.addToJobQueue(jobRequest);
 
+        // add job to rabbit server if there's availability
         // TODO: needs testing and documentation
-        
-        Meta serverMeta = EPRenderCore.getServerMeta();
-        for (Node node : serverMeta.getServerNodes()) {
-            if (node.getNodeStatus().equals(NodeStatus.Ready)) {
-                if (serverMeta.getActionQueue().size() > 0) {
-                    node.setCurrentJob(serverMeta.popActionQueue());
-                } else {
-                    if (serverMeta.blenderJobs.size() > 0) {
-                        ArrayList<JobRequest> openBlenderJobs = new ArrayList<>();
-                        for (JobRequest job : serverMeta.jobQueue) {
-                            if (job.getProjectType().compareTo(ProjectType.AfterEffects) > 0) {
-                                openBlenderJobs.add(job);
-                            }
-                        }
 
-                        JobRequest lowestCount = openBlenderJobs.get(0);
-                        if (openBlenderJobs.size() > 1) {
-                            for (JobRequest job : openBlenderJobs) {
-                                if (job.equals(openBlenderJobs.get(0))) {
-                                    continue;
-                                }
-                                if (job.getBlenderDistributedAmount() < lowestCount.getBlenderDistributedAmount()) {
-                                    lowestCount = job;
-                                }
-                            }
-                        }
-
-                        for (JobRequest blenderJob : serverMeta.blenderJobs) {
-                            if (blenderJob.getProjectFile().equals(lowestCount.getProjectFile())) {
-                                serverMeta.addToActionQueue(blenderJob);
-                                serverMeta.popBlenderJob(blenderJob);
-                            }
-                        }
-                    }
-                }
-            }
+        if (nodesAvailable()) {
+            // TODO: send to rabbit mq
+        } else {
+            this.actionQueue.add(jobRequest);
         }
     }
 
@@ -90,10 +66,44 @@ public class Meta {
     }
 
     public void addToBlenderJobs(JobRequest jobRequest) {
-        this.blenderJobs.add(jobRequest);
+        jobRequest.setStatus(JobStatus.Queued);
+
+        if (nodesAvailable()) {
+            queNextBlender();
+        } else {
+            this.blenderJobs.add(jobRequest);
+        }
     }
 
-    public void popBlenderJob(JobRequest blenderJob) {
+    public void queNextBlender() {
+        ArrayList<JobRequest> openBlenderJobs = new ArrayList<>();
+        for (JobRequest job : jobQueue) {
+            if (job.getProjectType().compareTo(ProjectType.AfterEffects) > 0) {
+                openBlenderJobs.add(job);
+            }
+        }
+
+        JobRequest lowestCount = openBlenderJobs.get(0);
+        if (openBlenderJobs.size() > 1) {
+            for (JobRequest job : openBlenderJobs) {
+                if (job.equals(openBlenderJobs.get(0))) {
+                    continue;
+                }
+                if (job.getBlenderDistributedAmount() < lowestCount.getBlenderDistributedAmount()) {
+                    lowestCount = job;
+                }
+            }
+        }
+
+        for (JobRequest blenderJob : blenderJobs) {
+            if (blenderJob.getProjectFile().equals(lowestCount.getProjectFile())) {
+                addToActionQueue(blenderJob);
+                removeBlenderJob(blenderJob);
+            }
+        }
+    }
+
+    public void removeBlenderJob(JobRequest blenderJob) {
         this.blenderJobs.remove(blenderJob);
     }
 
@@ -111,5 +121,19 @@ public class Meta {
 
     public void removeServerNode(Node serverNode) {
         this.serverNodes.remove(serverNode);
+    }
+
+
+    // SECTION: internal methods
+
+    private boolean nodesAvailable() {
+        if (getJobQueue().size() == 0) {
+            for (Node node : getServerNodes()) {
+                if (node.getNodeStatus().equals(NodeStatus.Ready)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

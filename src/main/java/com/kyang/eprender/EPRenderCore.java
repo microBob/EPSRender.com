@@ -79,10 +79,7 @@ public class EPRenderCore {
                         jobRequest.setBlenderCurrentFrame(i);
 
                         if (i == blenderStartFrame) {
-                            jobRequest.setStatus(JobStatus.Queued);
-
                             serverMeta.addToActionQueue(jobRequest);
-                            serverMeta.addToJobQueue(jobRequest);
                         } else {
                             serverMeta.addToBlenderJobs(jobRequest);
                         }
@@ -91,18 +88,12 @@ public class EPRenderCore {
                     JobRequest jobRequest = new JobRequest(useremail, projectTypeInt, projectLocation);
                     jobRequest.setBlenderCurrentFrame(-1);
 
-                    jobRequest.setStatus(JobStatus.Queued);
-
                     serverMeta.addToActionQueue(jobRequest);
-                    serverMeta.addToJobQueue(jobRequest);
                 }
             } else {
                 JobRequest jobRequest = new JobRequest(useremail, projectTypeInt, projectLocation);
 
-                jobRequest.setStatus(JobStatus.Queued);
-
                 serverMeta.addToActionQueue(jobRequest);
-                serverMeta.addToJobQueue(jobRequest);
             }
 
             System.out.println("[Debug]: JobQueue count: "+serverMeta.getJobQueue().size());

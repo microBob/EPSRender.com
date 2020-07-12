@@ -1,5 +1,6 @@
 package com.kyang.eprender.models;
 
+import com.kyang.eprender.EPRenderCore;
 import com.kyang.eprender.Enums.NodeStatus;
 import com.kyang.eprender.Enums.PowerIndex;
 
@@ -20,6 +21,13 @@ public class Node {
         this.powerIndex = PowerIndex.values()[powerIndex];
     }
 
+
+    // SECTION: Internal functions
+    public void getNextJob() {
+        Meta serverMeta = EPRenderCore.getServerMeta();
+
+        // TODO: pop next job from action and handle get from blender if nothing in action
+    }
 
     // SECTION: Delegate Methods
     public String getNodeName() {
