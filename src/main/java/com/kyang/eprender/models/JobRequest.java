@@ -7,7 +7,7 @@ import java.io.*;
 
 public class JobRequest {
     // SECTION: Properties
-    private String useremail;
+    private String userEmail;
     private ProjectType projectType;
     private boolean blenderUseAll = false;
     private int blenderStartFrame;
@@ -21,10 +21,10 @@ public class JobRequest {
 
     // SECTION: Constructors
     // shortcut for Adobe or blender that uses all frames
-    public JobRequest(String useremail, int projectType, String projectLocation) {
-        this.useremail = useremail;
+    public JobRequest(String userEmail, int projectType, String projectFolderName) {
+        this.userEmail = userEmail;
         this.projectType = ProjectType.values()[projectType];
-        this.projectFile = IdentifyProjectFile(projectLocation, this.projectType);
+        this.projectFile = IdentifyProjectFile(projectFolderName, this.projectType);
 
         if (projectType > 1) { // using blender type
             blenderUseAll = true;
@@ -32,18 +32,18 @@ public class JobRequest {
     }
 
     // for blender with specific frames
-    public JobRequest(String useremail, int projectType, String projectLocation, int blenderStartFrame, int blenderEndFrame) {
-        this.useremail = useremail;
+    public JobRequest(String userEmail, int projectType, String projectFolderName, int blenderStartFrame, int blenderEndFrame) {
+        this.userEmail = userEmail;
         this.projectType = ProjectType.values()[projectType];
-        this.projectFile = IdentifyProjectFile(projectLocation, this.projectType);
+        this.projectFile = IdentifyProjectFile(projectFolderName, this.projectType);
         this.blenderStartFrame = blenderStartFrame;
         this.blenderEndFrame = blenderEndFrame;
     }
 
 
     // SECTION: internal methods
-    private String IdentifyProjectFile(String projectLocation, ProjectType projectType) {
-        File projectDir = new File(projectLocation);
+    private String IdentifyProjectFile(String projectFolderName, ProjectType projectType) {
+        File projectDir = new File(projectFolderName);
         File[] files = projectDir.listFiles();
 
         if (files == null) {
@@ -109,35 +109,17 @@ public class JobRequest {
                 return targetFile.toString();
             }
         }
-
-//        File[] files = projectDir.listFiles(new FilenameFilter() {
-//            @Override
-//            public boolean accept(File dir, String name) {
-//                switch (projectType) {
-//                    case PremierePro:
-//                        return name.endsWith(".prproj");
-//                    case AfterEffects:
-//                        return name.endsWith(".aep") || name.endsWith(".aepx");
-//                    default: // assume using blender
-//                        return name.endsWith(".blend");
-//                }
-//            }
-//        });
-
-//        System.out.println("[Debug]: toPath().toString() => " + files[0].toPath().toString());
-//        System.out.println("[Debug]: toString() => " + files[0].toString());
-//        return files[0].toPath().toString();
     }
 
 
     // SECTION: Delegate methods
 
-    public String getUseremail() {
-        return useremail;
+    public String getUserEmail() {
+        return userEmail;
     }
 
-    public void setUseremail(String useremail) {
-        this.useremail = useremail;
+    public void setUserEmail(String userEmail) {
+        this.userEmail = userEmail;
     }
 
     public ProjectType getProjectType() {

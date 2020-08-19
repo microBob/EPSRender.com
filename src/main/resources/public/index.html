@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
     <meta charset="utf-8">
@@ -14,7 +14,7 @@
 </head>
 
 <body>
-<header class="text-light bg-dark" style="margin: 0px;padding: 5px;opacity: 0.90;">
+<header class="text-light bg-dark" style="margin: 0;padding: 5px;opacity: 0.90;">
     <h1 class="text-center"><strong>EPRender</strong></h1>
     <h5 class="text-center">Eastside Preparatory School's Render Server</h5>
 </header>
@@ -26,7 +26,7 @@
             <div class="col-md-12">
                 <div class="shadow" style="padding: 15px;">
                     <h2>New Job Request</h2>
-                    <form style="padding: 0px;" id="new-job-request-form">
+                    <form style="padding: 0;" id="new-job-request-form">
                         <!-- Start: Login -->
                         <div class="form-group">
                             <fieldset class="border rounded shadow-sm" style="padding: 15px;">
@@ -123,27 +123,32 @@
                                 </fieldset>
                             </div>
                             <!-- End: Project Type -->
-                            <!-- Start: Project Location -->
+                            <!-- Start: Project Upload -->
                             <div class="form-group">
                                 <fieldset class="border rounded shadow-sm" style="padding: 15px;">
-                                    <legend>Project Location</legend>
+                                    <legend>Project Upload</legend>
+                                    <div class="form-row" style="margin-bottom: 5px;">
+                                        <a class="btn btn-primary" type="button"
+                                           href="https://eastsidepreparatory-my.sharepoint.com/:f:/g/personal/kyang_eastsideprep_org/EgjOv2VfO8JAuh2D7KHUt-cBn6unK5iGXjliPtTbJq6HOw?e=rGcJ5r"
+                                           target="_blank"><i
+                                                class="fas fa-cloud-upload-alt"></i> Upload to Shared OneDrive
+                                        </a>
+                                    </div>
                                     <div class="form-row d-lg-flex">
-                                        <div class="col-9"><input class="form-control" type="text" data-toggle="tooltip"
-                                                                  data-bs-tooltip="" id="project-location-input"
-                                                                  placeholder="\\drives\Student" title="Project Path"
-                                                                  required="" minlength="6"
-                                                                  onchange="completionValidation()"></div>
+                                        <div class="col-9"><input type="text" data-toggle="tooltip" class="form-control"
+                                                                  id="project-folder-name-input"
+                                                                  placeholder="My Project Folder Name" required
+                                                                  minlength="1" title="Project Folder Name"/></div>
                                         <div class="col">
-                                            <button class="btn btn-light project-location-help-btn"
-                                                    data-toggle="tooltip" data-bs-tooltip=""
-                                                    id="project-location-help-btn" type="button"
-                                                    title="The Render Server uses the path to your project on the school's Student network drive to get your project.">
+                                            <button class="btn btn-light project-upload-help-btn"
+                                                    data-toggle="tooltip" id="project-upload-help-btn" type="button"
+                                                    title="The Render Server uses the name of your project&#39;s folder on a shared OneDrive space to access your project files.">
                                                 <i class="far fa-question-circle"></i></button>
                                         </div>
                                     </div>
                                 </fieldset>
                             </div>
-                            <!-- End: Project Location -->
+                            <!-- End: Project Upload -->
                         </div>
                         <div class="form-group">
                             <!-- Start: request warning -->
@@ -275,11 +280,11 @@
                             class="far fa-question-circle"></i>&nbsp;Project Type
                     </button>
                     <!-- End: Type -->
-                    <!-- Start: Location -->
-                    <button class="btn btn-light text-left project-location-help-btn" type="button"><i
-                            class="far fa-question-circle"></i>&nbsp;Project Location
+                    <!-- Start: Upload -->
+                    <button class="btn btn-light text-left project-upload-help-btn" type="button"><i
+                            class="far fa-question-circle"></i>&nbsp;Project Upload
                     </button>
-                    <!-- End: Location -->
+                    <!-- End: Upload -->
                     <!-- Start: Server -->
                     <button class="btn btn-light text-left server-info-btn" type="button"><i
                             class="fas fa-info-circle"></i>&nbsp;The Server
@@ -379,32 +384,28 @@
         </div>
     </div>
     <!-- End: Project Type Help -->
-    <!-- Start: Project Location Help -->
-    <div class="modal fade" role="dialog" tabindex="-1" id="project-location-help-modal">
+    <!-- Start: Project Upload Help -->
+    <div class="modal fade" role="dialog" tabindex="-1" id="project-upload-help-modal">
         <div class="modal-dialog modal-dialog-scrollable" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4 class="modal-title">Project Location</h4>
+                    <h4 class="modal-title">Project Upload</h4>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
                             aria-hidden="true">×</span></button>
                 </div>
                 <div class="modal-body">
-                    <p style="max-height: 300px;"><strong>The Render Server uses the <em>path </em>to your project on
-                        the school's Student network drive to access your project files.</strong><br><br>Most projects
-                        require multiple, large, files that would make it almost impossible
-                        to upload in one go. The solution is to simply put your project on the Student network drive
-                        (like when you want to go laser cut something) and have the Server get your project for you.
-                        <strong>The Server will read the first related project file it sees (the first .prproj file, for
-                            example, if you are using Premiere Pro), so make sure you only have the file you want to
-                            render in the root of the project folder.</strong><br><br>The easiest way to find your
-                        project
-                        path is to use the file explorer. Navigate to your project on the network drive, and click on
-                        the blank space at the end of the address bar (circled in red):<img class="img-fluid"
-                                                                                            src="assets/img/win10-fileexplorer-addrbar.png"
-                                                                                            alt="File Explorer address bar"><br><br>This
-                        will change
-                        the address bar to show the text path of the folder. Copy that text and paste it in the Project
-                        Location text box.</p>
+                    <p style="max-height: 300px;"><strong>The Render Server uses the <em>name of your project&#39;s
+                        folder</em> on a shared OneDrive space to access your project files.</strong><br/><br/>Most
+                        projects require multiple, large, files that would make it almost impossible to upload in one
+                        go. The solution is to simply put your project on a shared network space (like when you want to
+                        go laser cut something) and have the Server get your project for you.<br/><br/>To upload your
+                        work, first put your project files into a folder (if it
+                        isn&#39;t already), click on the &quot;Upload to Shared OneDrive&quot; button to open the shared
+                        folder in your browser, and simply drag and drop your folder into the OneDrive space. Next, copy
+                        and paste the name of the folder you just uploaded into
+                        the text box named &quot;My Project Folder Name&quot;. Make sure you&#39;ve typed everything
+                        correctly! Invalid requests will be rejected by the server.<br/><br/>Please contact support if
+                        you require assistance!</p>
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-light" type="button" data-dismiss="modal">Close</button>
@@ -412,7 +413,7 @@
             </div>
         </div>
     </div>
-    <!-- End: Project Location Help -->
+    <!-- End: Project Upload Help -->
     <!-- Start: Job Queue Info -->
     <div class="modal fade" role="dialog" tabindex="-1" id="job-que-info-modal">
         <div class="modal-dialog modal-dialog-scrollable" role="document">

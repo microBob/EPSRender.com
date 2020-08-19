@@ -41,9 +41,9 @@
 	  	* check-box: **`use-all-frames-check-box`**
 	  		* disable above two when checked
 	  		* registers all frames to be rendered
-	  * URL input: **`project-location-input`**
-	  	* URL string to project location
-	  	* minimum URL (to Student drive): `\\drives\Students\`
+	  * text input: **`project-folder-name-input`**
+	  	* project folder name
+	  	* needs to be greater than 1 character
 	  * **`warning-error-p`**
 	  	* show default alert and any form validation errors
 	
@@ -156,6 +156,7 @@
 | Property       | Variable Name | Type         | Notes                               |
 | -------------- | ------------- | ------------ | ----------------------------------- |
 | Node name      | `nodeName`    | `String`     | Used to display<br />must be unique |
+| IP Address     | `ipAddress`   | `String`     | unique identifier                   |
 | Power Index    | `powerIndex`  | `PowerIndex` |                                     |
 | Node status    | `nodeStatus`  | `NodeStatus` |                                     |
 | Working on Job | `currentJob`  | `JobRequest` |                                     |
@@ -197,7 +198,7 @@
   1. set node `currentJob` to the `attachedJob`
   2. set `nodeStatus` to rendering
   3. set related `jobRequest` in the queue listing to rendering
-			   1. "rendering"
+				   1. "rendering"
 	   2. "n / total <u>rendered</u>"
      4. If `jobRequest` was the first frame in a blender render all
              1. read in `blenderStartFrame` and `blenderEndFrame`
