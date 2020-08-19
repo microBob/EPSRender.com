@@ -15,6 +15,7 @@ function updateStatusInternal(f) {
         console.log("Server Update Error: " + onerror);
     })
 }
+
 function updateStatusBtn() {
     updateStatusInternal(function (newInfo) {
         // Implement updating tables with new data

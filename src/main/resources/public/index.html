@@ -128,18 +128,20 @@
                                 <fieldset class="border rounded shadow-sm" style="padding: 15px;">
                                     <legend>Project Upload</legend>
                                     <div class="form-row" style="margin-bottom: 5px;">
-                                        <button class="btn btn-primary" type="button"><i
+                                        <a class="btn btn-primary" type="button"
+                                           href="https://eastsidepreparatory-my.sharepoint.com/:f:/g/personal/kyang_eastsideprep_org/EgjOv2VfO8JAuh2D7KHUt-cBn6unK5iGXjliPtTbJq6HOw?e=rGcJ5r"
+                                           target="_blank"><i
                                                 class="fas fa-cloud-upload-alt"></i> Upload to Shared OneDrive
-                                        </button>
+                                        </a>
                                     </div>
                                     <div class="form-row d-lg-flex">
                                         <div class="col-9"><input type="text" data-toggle="tooltip" class="form-control"
-                                                                  id="project-location-input"
+                                                                  id="project-folder-name-input"
                                                                   placeholder="My Project Folder Name" required
                                                                   minlength="1" title="Project Folder Name"/></div>
                                         <div class="col">
-                                            <button class="btn btn-light project-location-help-btn"
-                                                    data-toggle="tooltip" id="project-location-help-btn" type="button"
+                                            <button class="btn btn-light project-upload-help-btn"
+                                                    data-toggle="tooltip" id="project-upload-help-btn" type="button"
                                                     title="The Render Server uses the name of your project&#39;s folder on a shared OneDrive space to access your project files.">
                                                 <i class="far fa-question-circle"></i></button>
                                         </div>
@@ -278,11 +280,11 @@
                             class="far fa-question-circle"></i>&nbsp;Project Type
                     </button>
                     <!-- End: Type -->
-                    <!-- Start: Location -->
-                    <button class="btn btn-light text-left project-location-help-btn" type="button"><i
-                            class="far fa-question-circle"></i>&nbsp;Project Location
+                    <!-- Start: Upload -->
+                    <button class="btn btn-light text-left project-upload-help-btn" type="button"><i
+                            class="far fa-question-circle"></i>&nbsp;Project Upload
                     </button>
-                    <!-- End: Location -->
+                    <!-- End: Upload -->
                     <!-- Start: Server -->
                     <button class="btn btn-light text-left server-info-btn" type="button"><i
                             class="fas fa-info-circle"></i>&nbsp;The Server
@@ -382,8 +384,8 @@
         </div>
     </div>
     <!-- End: Project Type Help -->
-    <!-- Start: Project Location Help -->
-    <div class="modal fade" role="dialog" tabindex="-1" id="project-location-help-modal">
+    <!-- Start: Project Upload Help -->
+    <div class="modal fade" role="dialog" tabindex="-1" id="project-upload-help-modal">
         <div class="modal-dialog modal-dialog-scrollable" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -411,7 +413,7 @@
             </div>
         </div>
     </div>
-    <!-- End: Project Location Help -->
+    <!-- End: Project Upload Help -->
     <!-- Start: Job Queue Info -->
     <div class="modal fade" role="dialog" tabindex="-1" id="job-que-info-modal">
         <div class="modal-dialog modal-dialog-scrollable" role="document">

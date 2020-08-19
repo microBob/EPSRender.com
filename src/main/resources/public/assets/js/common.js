@@ -24,6 +24,7 @@ function addCSSClass(selector, className) {
         selector.addClass(className);
     }
 }
+
 // Safe remove CSS class
 function removeCSSClass(selector, className) {
     if (selector.hasClass(className)) {
@@ -32,7 +33,7 @@ function removeCSSClass(selector, className) {
 }
 
 // Show/Hide element
-function showElement(selector, show=true) {
+function showElement(selector, show = true) {
     if (show) {
         removeCSSClass(selector, "d-none");
     } else {

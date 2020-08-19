@@ -65,7 +65,7 @@ function updateLoginStatus() {
 
 // SECTION: validation
 // used selectors
-let $projectLocationInput = $("#project-location-input");
+let $projectFolderNameInput = $("#project-folder-name-input");
 let $errorMessageLbl = $("#warning-error-p");
 let $jobSubmitBtn = $("#job-submit-btn");
 
@@ -76,7 +76,7 @@ let checkForBlender = false;
 function completionValidation(showIssue = false) {
     /*
      * 1) check if project type is > 2 (whether need to check on blender render)
-     * 2) check if project location is empty
+     * 2) check if project folder name is empty
      * 2.1) display #2 if showIssue
      * 3) check blender render settings if #1 is true
      * 3.1) check if start frame is empty
@@ -102,14 +102,14 @@ function completionValidation(showIssue = false) {
     }
 
     // 2
-    if ($projectLocationInput.val() === "") {
+    if ($projectFolderNameInput.val() === "") {
         requiredFieldMissingMsg = true;
         //2.1
         if (showIssue) {
-            addCSSClass($projectLocationInput, "bg-warning")
+            addCSSClass($projectFolderNameInput, "bg-warning")
         }
     } else {
-        removeCSSClass($projectLocationInput, "bg-warning");
+        removeCSSClass($projectFolderNameInput, "bg-warning");
     }
 
     // 3
@@ -179,7 +179,7 @@ $("#new-job-request-form").submit(function () {
 
     let projectType = $($projectTypeSelect).val();
     let blenderUseAll, blenderStartFrame, blenderEndFrame;
-    let projectLocation = $($projectLocationInput).val();
+    let projectFolderName = $($projectFolderNameInput).val();
     if (projectType > 1) {
         blenderUseAll = $($blenderUseAllFramesCheck).prop("checked");
         if (!blenderUseAll) {
@@ -187,7 +187,7 @@ $("#new-job-request-form").submit(function () {
             blenderEndFrame = $($endFrameInput).val();
 
             request({
-                url: "/add_new_job?projectType=" + projectType + "&blenderUseAll=false&blenderStartFrame=" + blenderStartFrame + "&blenderEndFrame=" + blenderEndFrame + "&projectLocation=" + projectLocation,
+                url: "/add_new_job?projectType=" + projectType + "&blenderUseAll=false&blenderStartFrame=" + blenderStartFrame + "&blenderEndFrame=" + blenderEndFrame + "&projectFolderName=" + projectFolderName,
                 verb: "PUT"
             }).then(data => {
                 console.log("Add job successful!");
@@ -196,7 +196,7 @@ $("#new-job-request-form").submit(function () {
             });
         } else {
             request({
-                url: "/add_new_job?projectType=" + projectType + "&blenderUseAll=true&projectLocation=" + projectLocation,
+                url: "/add_new_job?projectType=" + projectType + "&blenderUseAll=true&projectFolderName=" + projectFolderName,
                 verb: "PUT"
             }).then(data => {
                 console.log("Add job successful!");
@@ -206,7 +206,7 @@ $("#new-job-request-form").submit(function () {
         }
     } else {
         request({
-            url: "/add_new_job?projectType=" + projectType + "&projectLocation=" + projectLocation,
+            url: "/add_new_job?projectType=" + projectType + "&projectFolderName=" + projectFolderName,
             verb: "PUT"
         }).then(data => {
             console.log("Add job successful!");

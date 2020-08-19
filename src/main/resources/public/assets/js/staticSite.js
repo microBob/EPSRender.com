@@ -8,8 +8,8 @@ $(".logout-help-btn").click(function () {
 $(".project-type-help-btn").click(function () {
     $("#project-type-help-modal").modal("show");
 });
-$(".project-location-help-btn").click(function () {
-    $("#project-location-help-modal").modal("show");
+$(".project-upload-help-btn").click(function () {
+    $("#project-upload-help-modal").modal("show");
 });
 $(".server-info-btn").click(function () {
     $("#server-info-modal").modal("show");
@@ -53,8 +53,7 @@ let $startFrameInput = $("#start-frame-input");
 
 // show blender render settings
 $projectTypeSelect.change(function () {
-    let isHidingSettings = $blenderRenderSettings.hasClass("d-none");
-    if ($projectTypeSelect.val() > 2) {
+    if ($projectTypeSelect.val() > 1) {
         showElement($blenderRenderSettings);
     } else {
         showElement($blenderRenderSettings, false);
