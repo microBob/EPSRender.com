@@ -1,4 +1,4 @@
-package com.kyang.eprender.Enums;
+package com.kyang.epsrender.Enums;
 
 public enum PowerIndex {
     Ultra,

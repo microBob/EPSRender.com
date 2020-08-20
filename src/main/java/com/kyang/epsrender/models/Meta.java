@@ -1,9 +1,8 @@
-package com.kyang.eprender.models;
+package com.kyang.epsrender.models;
 
-import com.kyang.eprender.EPRenderCore;
-import com.kyang.eprender.Enums.JobStatus;
-import com.kyang.eprender.Enums.NodeStatus;
-import com.kyang.eprender.Enums.ProjectType;
+import com.kyang.epsrender.Enums.JobStatus;
+import com.kyang.epsrender.Enums.NodeStatus;
+import com.kyang.epsrender.Enums.ProjectType;
 
 import java.util.ArrayList;
 

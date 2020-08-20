@@ -1,8 +1,8 @@
-package com.kyang.eprender.models;
+package com.kyang.epsrender.models;
 
-import com.kyang.eprender.EPRenderCore;
-import com.kyang.eprender.Enums.NodeStatus;
-import com.kyang.eprender.Enums.PowerIndex;
+import com.kyang.epsrender.EPSRenderCore;
+import com.kyang.epsrender.Enums.NodeStatus;
+import com.kyang.epsrender.Enums.PowerIndex;
 
 public class Node {
     // SECTION: Properties
@@ -24,7 +24,7 @@ public class Node {
 
     // SECTION: Internal functions
     public void getNextJob() {
-        Meta serverMeta = EPRenderCore.getServerMeta();
+        Meta serverMeta = EPSRenderCore.getServerMeta();
 
         // TODO: pop next job from action and handle get from blender if nothing in action
     }

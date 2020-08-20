@@ -1,16 +1,14 @@
-package com.kyang.eprender;
+package com.kyang.epsrender;
 
-import com.kyang.eprender.Enums.JobStatus;
-import com.kyang.eprender.Enums.ProjectType;
-import com.kyang.eprender.models.JobRequest;
-import com.kyang.eprender.models.Meta;
-import com.kyang.eprender.models.Node;
+import com.kyang.epsrender.models.JobRequest;
+import com.kyang.epsrender.models.Meta;
+import com.kyang.epsrender.models.Node;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 
 import java.util.Objects;
 
-public class EPRenderCore {
+public class EPSRenderCore {
 
     // Global vars
     private static final Meta serverMeta = new Meta();
