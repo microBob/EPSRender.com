@@ -119,7 +119,7 @@
 | Job Status       | `JobStatus`   | `0 = Verifying`<br />`1 = Queued`<br />`2 = Rendering`       |                                                              |
 | Node Power Index | `PowerIndex`  | `0 = Ultra`<br />`1 = High`<br />`2 = Mid`<br />`3 = Low`    | Tower 1<br />VR 1<br />Corsair 1, 2<br />DELL 1, 2, 3        |
 | Node Status      | `NodeStatus`  | `0 = Ready`<br />`1 = Rendering`<br />`2 = Offline`          |                                                              |
-| Message Type     | `MessageType` | `0 = VerifyBlender`<br />`1 = VerifyPremiere`<br />`2 = VerifyAE`<br /><br />`3 = RenderBlender`<br />`4 = RenderME`<br /><br />`5 = CompleteBlender`<br />`6 = CompleteME` | Verify primarily is used to identify if a file can be found<br />Blender verify includes getting frames<br /><br />Complete  messages let server know to update data |
+| Message Type     | `MessageType` | `0 = VerifyBlender`<br />`1 = VerifyPremiere`<br />`2 = VerifyAE`<br /><br />`3 = RenderBlender`<br />`4 = RenderME` | Verify primarily is used to identify if a file can be found<br />Blender verify includes getting frames<br /><br />messages received from node means "done" |
 
 ## Models
 
@@ -158,19 +158,21 @@
 | <u>*{Input parameter}*</u><br />Project Folder Name          | `projectFolderName` | `String`             |                                      |
 | <u>*{Input parameter}*</u><br />Blender project rendering info | `blenderInfo`       | `BlenderProjectInfo` | combination data for blender renders |
 | Verified                                                     | `verified`          | `bool`               | Only verified requests can be queued |
+| Verification Error Msg                                       | `errorMsg`          | `String`             | built by node                        |
 | Time Added                                                   | `timeAdded`         | `String`             | Java Date converted to string        |
 | Job Status                                                   | `jobStatus`         | `JobStatus`          |                                      |
 
 ### Blender Project Info (`.models.BlenderProjectInfo`)
 
-| Property         | Variable Name     | Type     | Notes                                                        |
-| ---------------- | ----------------- | -------- | ------------------------------------------------------------ |
-| Start Frame      | `startFrame`      | `int`    |                                                              |
-| End Frame        | `endFrame`        | `int`    |                                                              |
-| Use all frames?  | `useAllFrames`    | `bool`   |                                                              |
-| Project Filename | `fileName`        | `String` | acquired after verification                                  |
-| Frame Number     | `frameNumber`     | `int`    | Frame number this job represents<br />Set to `-1` when requesting frames |
-| Frames completed | `framesCompleted` | `int`    | `= (endFrame - startFrame) - `frames in queue                |
+| Property            | Variable Name     | Type     | Notes                                         |
+| ------------------- | ----------------- | -------- | --------------------------------------------- |
+| Start Frame         | `startFrame`      | `int`    |                                               |
+| End Frame           | `endFrame`        | `int`    |                                               |
+| Use all frames?     | `useAllFrames`    | `bool`   |                                               |
+| Project Filename    | `fileName`        | `String` | acquired after verification                   |
+| Frame Number        | `frameNumber`     | `int`    | Frame number this job represents<br />        |
+| Frames completed    | `framesCompleted` | `int`    | `= (endFrame - startFrame) - `frames in queue |
+| Number of renderers | `renderers`       | `int`    | number of nodes working on this               |
 
 ### Server Update Info (`.models.ServerUpdateInfo`)
 
@@ -181,15 +183,49 @@
 
 ## Server logic
 
-### Get new `JobRequest` (from Front-end)
+### Get new Job Request (from Front-end)
 
-1. use 
+1. parse data into a `JobRequest`
+	1. set `timeAdded` to format `MM/dd/yyyy hh:mm:ss aa`
+2. copy `JobRequest` to `verifyingQueue`
+
+### If a node is Ready
+
+1. pull the oldest item from `verifyingQueue` and send to node to verify
+	1. mark node rendering with job
+2. check `jobQueue`
+	1. if there is a rendering blender job with 0 working nodes, send next frame of this project from `blenderQueue` to node
+		1. mark node rendering with job
+	2. pick the next ME job
+		1. mark node rendering with job
+	3. pick the next frame in the oldest blender job
+		1. mark node rendering with job
+
+### Received verify (node completed verification)
+
+1. if bad
+	1. send email to user and copy `errorMsg`
+	2. remove `JobRequest` from queues
+2. if good
+	1. if blender
+		1. generate other frames (`JobRequests`) based on new data into `blenderQueue`
+3. set `JobRequest` `jobStatus` to queued
+4. check if a node is ready to render
+
+### Received render (node completed render)
+
+1. mark node as ready
+2. if blender
+	1. `++` to `framesCompleted`
+	2. if `framesCompleted = (endFrame - startFrame)`
+		1. send email to user on completion
+		2. remove `JobRequest` from queues
+	3. else, remove frame from `blenderQueue`
+3. if ME
+	1. send email to user on completion
+	2. remove `JobRequest` from queues
 
 # NodeJS (Client)
-
-## Working Logic
-
-1. 
 
 ## Special Items
 
