@@ -65,7 +65,7 @@
 	
 	  * displayed the nodes and their states
 	
-	  * sorted: `ready` -> `rendering` -> `offline`
+	  * sorted `ready -> rendering -> offline`
 	
 	  	* | Node | Status    |
 	  		| ---- | --------- |
@@ -93,15 +93,15 @@
 
 ## Routes
 
-| Name                     | What it does                                                 | Return                                                       |
-| ------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| **`/test`**              | simple text return test                                      | "Test again"                                                 |
-| **`/login`**             | redirects to EPSAuth                                         | "Running login"<br />redirect to completion route            |
-| **`/complete_login`**    | return redirect from `/login`. <br />Attaches the user to a session attribute | redirect to `/`                                              |
-| **`/update_login_stat`** | checks for current logged in user                            | session user *name* <br />"!invalid!" if invalid for some reason<br />"" if null |
-|                          |                                                              |                                                              |
-|                          |                                                              |                                                              |
-|                          |                                                              |                                                              |
+| Name                      | What it does                                                 | Return                                                       |
+| ------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| **`/test`**               | simple text return test                                      | "Test again"                                                 |
+| **`/login`**              | redirects to EPSAuth                                         | "Running login"<br />redirect to completion route            |
+| **`/complete_login`**     | return redirect from `/login`. <br />Attaches the user to a session attribute | redirect to `/`                                              |
+| **`/update_login_stat`**  | checks for current logged in user                            | session user *name* <br />"!invalid!" if invalid for some reason<br />"" if null |
+| **`/update_server_stat`** | updates displayed info on Job Que and Server Status          | `ServerUpdateInfo` JSON                                      |
+|                           |                                                              |                                                              |
+|                           |                                                              |                                                              |
 
 ## Session attributes
 
@@ -113,54 +113,81 @@
 
 ## Server Enums (`.Enums.`)
 
-| Name             | Enum Name     | Values                                                       | Notes                                                 |
-| ---------------- | ------------- | ------------------------------------------------------------ | ----------------------------------------------------- |
-| Project Type     | `ProjectType` | `0 = PremierePro`<br />`1 = AfterEffects`<br />`2 = BlenderCycles`<br />`3 = BlenderEEVEE` |                                                       |
-| Job Status       | `JobStatus`   | `0 = Unassigned`<br />`1 = Queued`<br />`2 = Rendering`      |                                                       |
-| Node Power Index | `PowerIndex`  | `0 = Ultra`<br />`1 = High`<br />`2 = Mid`<br />`3 = Low`    | Tower 1<br />VR 1<br />Corsair 1, 2<br />DELL 1, 2, 3 |
-| Node Status      | `NodeStatus`  | `0 = Ready`<br />`1 = Rendering`<br />`2 = Offline`          |                                                       |
-| Message Type     | `MessageType` | `"Blender Frames"` = `BlenderFrames`                         |                                                       |
+| Name             | Enum Name     | Values                                                       | Notes                                                        |
+| ---------------- | ------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| Project Type     | `ProjectType` | `0 = PremierePro`<br />`1 = AfterEffects`<br />`2 = BlenderCycles`<br />`3 = BlenderEEVEE` |                                                              |
+| Job Status       | `JobStatus`   | `0 = Verifying`<br />`1 = Queued`<br />`2 = Rendering`       |                                                              |
+| Node Power Index | `PowerIndex`  | `0 = Ultra`<br />`1 = High`<br />`2 = Mid`<br />`3 = Low`    | Tower 1<br />VR 1<br />Corsair 1, 2<br />DELL 1, 2, 3        |
+| Node Status      | `NodeStatus`  | `0 = Ready`<br />`1 = Rendering`<br />`2 = Offline`          |                                                              |
+| Message Type     | `MessageType` | `0 = VerifyBlender`<br />`1 = VerifyPremiere`<br />`2 = VerifyAE`<br /><br />`3 = RenderBlender`<br />`4 = RenderME`<br /><br />`5 = CompleteBlender`<br />`6 = CompleteME` | Verify primarily is used to identify if a file can be found<br />Blender verify includes getting frames<br /><br />Complete  messages let server know to update data |
 
 ## Models
 
 ### Server Meta (`.models.Meta`)
 
-| Property          | Variable Name | Type               | Notes                                                        |
-| ----------------- | ------------- | ------------------ | ------------------------------------------------------------ |
-| Job Queue         | `jobQueue`    | `List<JobRequest>` | holds all current requests their statuses                    |
-| Action Queue      | `actionQueue` | `List<JobRequest>` | job requests that are immediately actionable.<br />pulled from and added to the render que when there are availabilities |
-| Blender Job Queue | `blenderJobs` | `List<JobRequest>` | hold the frames of the Blender jobs<br />pull from here when adding frames for (distributed) rendering |
-| Server nodes      | `serverNodes` | `List<Node>`       |                                                              |
+| Property        | Variable Name    | Type               | Notes                                       |
+| --------------- | ---------------- | ------------------ | ------------------------------------------- |
+| Job Queue       | `jobQueue`       | `List<JobRequest>` | holds all current requests their statuses   |
+| Verifying Queue | `verifyingQueue` | `List<JobRequest>` | copy of an unverified request in `jobQueue` |
+| Blender Queue   | `blenderQueue`   | `List<JobRequest>` | holds verified blender frames               |
+| Server nodes    | `serverNodes`    | `List<Node>`       |                                             |
+### Server Node (`.models.Node`)
+
+| Property           | Variable Name  | Type         | Notes                                   |
+| ------------------ | -------------- | ------------ | --------------------------------------- |
+| Node name          | `nodeName`     | `String`     | Used to display<br />must be unique     |
+| IP Address         | `ipAddress`    | `String`     | unique identifier                       |
+| Context session ID | `ctxSessionID` | `String`     | acquired when first connected to Server |
+| Power Index        | `powerIndex`   | `PowerIndex` |                                         |
+| Node status        | `nodeStatus`   | `NodeStatus` |                                         |
+| Working on Job     | `currentJob`   | `JobRequest` |                                         |
+
+### Message (`.models.Message`)
+
+| Properties       | Variable Name | Type          | Notes                                      |
+| ---------------- | ------------- | ------------- | ------------------------------------------ |
+| Message Type     | `type`        | `MessageType` |                                            |
+| Job Request Data | `jobRequest`  | `JobRequest`  | use type to determine what to do with data |
 
 ### Job Request (`.models.JobRequest`)
 
-| Property                                               | Variable Name              | Type          | Notes                                                        |
-| ------------------------------------------------------ | -------------------------- | ------------- | ------------------------------------------------------------ |
-| *<u>{Input parameter}</u>*<br />User's email           | `useremail`                | `String`      | Identity of sender                                           |
-| *<u>{Input parameter}</u>*<br />Project Type           | `projectType`              | `ProjectType` |                                                              |
-| *<u>{Input parameter}</u>*<br />Blender Use All Frames | `blenderUseAll`            | `boolean`     | `true` = use all frames<br />`false` = use start and end frames |
-| *<u>{Input parameter}</u>*<br />Blender Start Frame    | `blenderStartFrame`        | `int`         | (`>= 1`)<br />only read if `blenderUseAll = false`.          |
-| *<u>{Input parameter}</u>*<br />Blender End Frame      | `blenderEndFrame`          | `int`         | (`>= blenderStartFrame`)<br />only read if `blenderUseAll = false` |
-| Project File                                           | `projectFile`              | String        | URL to specific project file<br />generated after received   |
-| *<u>{Input parameter}</u>*<br />Project Location       | `projectLocation`          | `String`      | URL to location on student drive.<br />must include: `\\drives\Students\`<br />generated from `projectFile` |
-| Job status                                             | `status`                   | `JobStatus`   |                                                              |
-| Blender frames rendered                                | `blenderFramesRendered`    | `int`         | (`bSF <= n <= bEF`)<br />"`n` / total frames"<br />used as rendering status message |
-| Blender current frame                                  | `blenderCurrentFrame`      | `int`         | the frame this request represents                            |
-| Blender distributed amount                             | `blenderDistributedAmount` | `int`         | number of nodes working on this request                      |
+| Property                                                     | Variable Name       | Type                 | Notes                                |
+| ------------------------------------------------------------ | ------------------- | -------------------- | ------------------------------------ |
+| *<u>{Input parameter}</u>*<br />User's email                 | `useremail`         | `String`             | Identity of sender                   |
+| *<u>{Input parameter}</u>*<br />Project Type                 | `projectType`       | `ProjectType`        |                                      |
+| <u>*{Input parameter}*</u><br />Project Folder Name          | `projectFolderName` | `String`             |                                      |
+| <u>*{Input parameter}*</u><br />Blender project rendering info | `blenderInfo`       | `BlenderProjectInfo` | combination data for blender renders |
+| Verified                                                     | `verified`          | `bool`               | Only verified requests can be queued |
+| Time Added                                                   | `timeAdded`         | `String`             | Java Date converted to string        |
+| Job Status                                                   | `jobStatus`         | `JobStatus`          |                                      |
 
-### Server Node (`.models.Node`)
+### Blender Project Info (`.models.BlenderProjectInfo`)
 
-| Property       | Variable Name | Type         | Notes                               |
-| -------------- | ------------- | ------------ | ----------------------------------- |
-| Node name      | `nodeName`    | `String`     | Used to display<br />must be unique |
-| IP Address     | `ipAddress`   | `String`     | unique identifier                   |
-| Power Index    | `powerIndex`  | `PowerIndex` |                                     |
-| Node status    | `nodeStatus`  | `NodeStatus` |                                     |
-| Working on Job | `currentJob`  | `JobRequest` |                                     |
+| Property         | Variable Name     | Type     | Notes                                                        |
+| ---------------- | ----------------- | -------- | ------------------------------------------------------------ |
+| Start Frame      | `startFrame`      | `int`    |                                                              |
+| End Frame        | `endFrame`        | `int`    |                                                              |
+| Use all frames?  | `useAllFrames`    | `bool`   |                                                              |
+| Project Filename | `fileName`        | `String` | acquired after verification                                  |
+| Frame Number     | `frameNumber`     | `int`    | Frame number this job represents<br />Set to `-1` when requesting frames |
+| Frames completed | `framesCompleted` | `int`    | `= (endFrame - startFrame) - `frames in queue                |
+
+### Server Update Info (`.models.ServerUpdateInfo`)
+
+| Property      | Variable Name | Type               | Notes                                    |
+| ------------- | ------------- | ------------------ | ---------------------------------------- |
+| Job Queue     | `jobQueue`    | `List<JobRequest>` | merge of `jobQueue` and `verifyingQueue` |
+| Server Status | `serverStat`  | `List<Node>`       | sorted `ready -> rendering -> offline`   |
 
 ## Server logic
 
 ### Get new `JobRequest` (from Front-end)
+
+1. use 
+
+# NodeJS (Client)
+
+## Working Logic
 
 1. 
 
@@ -171,9 +198,3 @@
 bash command: `blender -b {blender file to render} --python {path/to/}getFrames.py | grep -w 'EPRenderInterestedFrames:'`
 
 * returns `EPRenderInterestedFrames: start,end`
-
-# NodeJS (Client)
-
-## Working Logic
-
-1. 

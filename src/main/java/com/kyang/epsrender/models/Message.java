@@ -9,7 +9,7 @@ public class Message {
 
     @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", include = JsonTypeInfo.As.EXTERNAL_PROPERTY)
     @JsonSubTypes(value = {
-            @JsonSubTypes.Type(value = BlenderFrames.class, name = "BlenderFrames")
+            @JsonSubTypes.Type(value = BlenderFrames.class, name = "0")
     })
     private MessageData data;
 
