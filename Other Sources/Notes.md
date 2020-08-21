@@ -33,7 +33,7 @@
 	  	* **`1`** = After Effects
 	  	* **`2`** = Cycles
 	  	* **`3`** = EEVEE
-	  	* 3/4 (blender) will show frame selection settings
+	  	* 2/3 (blender) will show frame selection settings
 	  * **`blender-render-settings`**
 	  	* div with blender frame selections settings
 	  	* number input: **`start-frame-input`**
@@ -41,44 +41,41 @@
 	  	* check-box: **`use-all-frames-check-box`**
 	  		* disable above two when checked
 	  		* registers all frames to be rendered
-	  * text input: **`project-folder-name-input`**
+	  * **`project-folder-name-input`**
 	  	* project folder name
 	  	* needs to be greater than 1 character
 	  * **`warning-error-p`**
 	  	* show default alert and any form validation errors
+	  	
+	  	   * it is the `<span>` that contains the error message, not the whole `<p>` itself
+	  
+	* form submit button: **`job-submit-btn`**
 	
-  	* is the `<span>` that contains the error message, not the whole `<p>` itself
-	  * form submit button: **`job-submit-btn`**
-
 	* **`job-que-table`**
-
-		* displayed the job queue
 	
-		* | User | Type | Time Added | Status                       |
-			| ---- | ---- | ---------- | ---------------------------- |
-			|      |      |            | **`x`**/**`total`** rendered |
-		|      |      |            | Rendering                    |
-			|      |      |            | Place **`#`** in Queue       |
-
+	  * displayed the job queue
+	
+	  * | User | Type | Time Added | Status                       |
+	  	| ---- | ---- | ---------- | ---------------------------- |
+	  	|      |      |            | **`x`**/**`total`** rendered |
+	  |      |      |            | Rendering                    |
+	  	|      |      |            | Place **`#`** in Queue       |
+	
 	* **`server-status-table`**
-
-		* displayed the nodes and their states
-
-		* sorted: `online` -> `rendering` -> `offline`
 	
-			* | Node | Status    |
-				| ---- | --------- |
-				|      | Offline   |
-			|      | Ready     |
-				|      | Rendering |
-
+	  * displayed the nodes and their states
+	
+	  * sorted: `ready` -> `rendering` -> `offline`
+	
+	  	* | Node | Status    |
+	  		| ---- | --------- |
+	  		|      | Offline   |
+	  	|      | Ready     |
+	  		|      | Rendering |
+	
 	* **`update-server-info-btn`**
 	
-		* pull updates from server to repopulate the tables
-
-### Tables example
-
-![table example](/home/microbobu/Documents/EPS Render Server/EPRender.com/Other Sources/exampleServerInfo.png)
+	  * pull updates from server to repopulate the tables
 
 ## Useful CSS class definitions
 
@@ -116,13 +113,13 @@
 
 ## Server Enums (`.Enums.`)
 
-| Name                 | Enum Name            | Values                                                       | Notes                                                 |
-| -------------------- | -------------------- | ------------------------------------------------------------ | ----------------------------------------------------- |
-| Project Type         | `ProjectType`        | `0 = PremierePro`<br />`1 = AfterEffects`<br />`2 = BlenderCycles`<br />`3 = BlenderEEVEE` |                                                       |
-| Job Status           | `JobStatus`          | `0 = Unassigned`<br />`1 = Queued`<br />`2 = Rendering`      |                                                       |
-| Node Power Index     | `PowerIndex`         | `0 = Ultra`<br />`1 = High`<br />`2 = Mid`<br />`3 = Low`    | Tower 1<br />VR 1<br />Corsair 1, 2<br />DELL 1, 2, 3 |
-| Node Status          | `NodeStatus`         | `0 = Ready`<br />`1 = Rendering`<br />`2 = Offline`          |                                                       |
-| Node Response Status | `NodeResponseStatus` | `0 = Accept`<br />`1 = Completed`<br />`2 = Reject`          |                                                       |
+| Name             | Enum Name     | Values                                                       | Notes                                                 |
+| ---------------- | ------------- | ------------------------------------------------------------ | ----------------------------------------------------- |
+| Project Type     | `ProjectType` | `0 = PremierePro`<br />`1 = AfterEffects`<br />`2 = BlenderCycles`<br />`3 = BlenderEEVEE` |                                                       |
+| Job Status       | `JobStatus`   | `0 = Unassigned`<br />`1 = Queued`<br />`2 = Rendering`      |                                                       |
+| Node Power Index | `PowerIndex`  | `0 = Ultra`<br />`1 = High`<br />`2 = Mid`<br />`3 = Low`    | Tower 1<br />VR 1<br />Corsair 1, 2<br />DELL 1, 2, 3 |
+| Node Status      | `NodeStatus`  | `0 = Ready`<br />`1 = Rendering`<br />`2 = Offline`          |                                                       |
+| Message Type     | `MessageType` | `"Blender Frames"` = `BlenderFrames`                         |                                                       |
 
 ## Models
 
@@ -161,65 +158,11 @@
 | Node status    | `nodeStatus`  | `NodeStatus` |                                     |
 | Working on Job | `currentJob`  | `JobRequest` |                                     |
 
-### Node Response (`.models.NodeResponse`)
-
-| Property     | Variable Name  | Type                 | Notes                              |
-| ------------ | -------------- | -------------------- | ---------------------------------- |
-| Node name    | `nodeName`     | `String`             | identifier                         |
-| Attached Job | `attachedJob`  | `jobRequest`         | job that this response pertains to |
-| Status       | `reportStatus` | `NodeResponseStatus` |                                    |
-
-## Serving logic
+## Server logic
 
 ### Get new `JobRequest` (from Front-end)
 
-1. add to `Meta.jobQueue`
-2. If Adobe, immediately add to `Meta.actionQueue`
-3. If Blender
-	1. if use all frames
-		1. immediately create and add a `jobRequest` for frame `-1` to `meta.actionQueue`
-			1. use `-1` to signal that this needs to be checked
-		2. wait for response before creating other frames
-	2. if given explicit frames
-		1. create `jobRequest` class for each frame and immediately add first to `Meta.actionQueue`
-4. Add other blender frames to `Meta.blenderJobs`
-
-### Add Jobs to RabbitMQ's `render-jobs`
-
-1. All assumes `Meta.serverNodes` has at least one that is ready
-2. If `Meta.blenderJobs.count != 0`
-	1. look for in progress blender jobs
-	2. if `JobRequest.blenderDistributedAmount > 0 && Meta.actionQueue.count != 0`: pop next `Meta.actionQueue` item into `render-jobs`
-	3. if `JobRequest.blenderDistributedAmount == 0 && Meta.actionQueue.count == 0`: pop next blender frame from this request into `render-jobs` as <u>priority</u>
-3. If nothing happened from #2: pop the top job from `Meta.actionQueue` into RabbitMQ's `render-jobs`
-
-### On node register taking a job (from RabbitMQ)
-
-  1. set node `currentJob` to the `attachedJob`
-  2. set `nodeStatus` to rendering
-  3. set related `jobRequest` in the queue listing to rendering
-				   1. "rendering"
-	   2. "n / total <u>rendered</u>"
-     4. If `jobRequest` was the first frame in a blender render all
-             1. read in `blenderStartFrame` and `blenderEndFrame`
-             2. create extra frames as detailed in getting new `JobRequest`
-
-### On node register completed job (from RabbitMQ)
-
-  1. set node `currentJob` to `null`
-  2. set `serverNodes.<requested node>.nodeStatus` to ready
-  3. set related `jobRequest` in the queue listing
-   4. remove if Adobe and email
-   5. If Blender: increment/set "n" in the rendered message.
-	     		1. if all rendered, remove from listing and email
-6. run **Add Job**
-
-### On node register rejected job (from RabbitMQ)
-
-  1. if Adobe: delete and email
-  2. if Blender: find all and delete, then email
-  3. set `serverNodes.<requested node>.nodeStatus` to ready
-  4. run **Add Job** 
+1. 
 
 ## Special Items
 
@@ -229,18 +172,8 @@ bash command: `blender -b {blender file to render} --python {path/to/}getFrames.
 
 * returns `EPRenderInterestedFrames: start,end`
 
-# Python (Client)
+# NodeJS (Client)
 
 ## Working Logic
 
 1. 
-
-# RabbitMQ (Server)
-
-## Queues
-
-| Name            | Technical Name    | Notes                                                        |
-| --------------- | ----------------- | ------------------------------------------------------------ |
-| Render Jobs     | `render-jobs`     | Any immediately render-able jobs used to deliver jobs to any open/available nodes |
-| Back from Nodes | `back-from-nodes` | used to send messages from nodes back to the server (like when a job is completed) |
-

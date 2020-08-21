@@ -15,7 +15,7 @@
 
 <body>
 <header class="text-light bg-dark" style="margin: 0;padding: 5px;opacity: 0.90;">
-    <h1 class="text-center"><strong>EPRender</strong></h1>
+    <h1 class="text-center"><strong>EPSRender</strong></h1>
     <h5 class="text-center">Eastside Preparatory School's Render Server</h5>
 </header>
 <!-- Start: 1 Row 1 Column -->
@@ -54,7 +54,8 @@
                                             id="current-user-lbl"></strong></label></div>
                                     <div class="col">
                                         <!-- Start: Change User -->
-                                        <button class="btn btn-light logout-help-btn" data-toggle="tooltip" data-bs-tooltip=""
+                                        <button class="btn btn-light logout-help-btn" data-toggle="tooltip"
+                                                data-bs-tooltip=""
                                                 data-placement="right" id="logout-help-btn" type="button"
                                                 title="This site identifies the user based on who's signed in with  Microsoft 356 (formerly known as Office 356).">
                                             <i class="far fa-times-circle"></i>&nbsp;Not you?
@@ -134,7 +135,7 @@
                                                 class="fas fa-cloud-upload-alt"></i> Upload to Shared OneDrive
                                         </a>
                                     </div>
-                                    <div class="form-row d-lg-flex">
+                                    <div class="form-row d-lg-flex" style="margin-bottom: 5px;">
                                         <div class="col-9"><input type="text" data-toggle="tooltip" class="form-control"
                                                                   id="project-folder-name-input"
                                                                   placeholder="My Project Folder Name" required
@@ -374,8 +375,12 @@
                     <p><strong>The Render Server supports rendering from different platforms, but you'll need to specify
                         which one to use.</strong><br><br>Projects from Adobe Premiere Pro or After Effects will be
                         processed with Adobe Media Encoder and
-                        rendered as an H.265 MP4. Blender projects will be rendered as the specified export type from
-                        the specified frames (inputs will be available when you select Blender as your type).</p>
+                        rendered as an H.264 MP4. Media Encoder Watch Folders will be used to accomplish this. Please
+                        view <a href="https://helpx.adobe.com/media-encoder/how-to/create-watch-folder.html">this
+                            page</a> for more information.<br><br>Blender projects will be rendered as the
+                        specified export type from
+                        the specified frames (inputs will be available when you select Blender as your type). Rendering
+                        will be done using Blender command line rendering</p>
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-light" type="button" data-dismiss="modal">Close</button>
@@ -399,13 +404,14 @@
                         projects require multiple, large, files that would make it almost impossible to upload in one
                         go. The solution is to simply put your project on a shared network space (like when you want to
                         go laser cut something) and have the Server get your project for you.<br/><br/>To upload your
-                        work, first put your project files into a folder (if it
-                        isn&#39;t already), click on the &quot;Upload to Shared OneDrive&quot; button to open the shared
+                        work, first put your files into a folder (if it isn&#39;t already) and make sure the project
+                        file (the .prproj file or .blend file) is available right when you open the folder. Make sure
+                        there's only one project file in there, the Server will pick the first project file it sees to
+                        render! Next, click on the &quot;Upload to Shared OneDrive&quot; button to open the shared
                         folder in your browser, and simply drag and drop your folder into the OneDrive space. Next, copy
-                        and paste the name of the folder you just uploaded into
-                        the text box named &quot;My Project Folder Name&quot;. Make sure you&#39;ve typed everything
-                        correctly! Invalid requests will be rejected by the server.<br/><br/>Please contact support if
-                        you require assistance!</p>
+                        and paste the name of the folder you just uploaded into the text box named &quot;My Project
+                        Folder Name&quot;. Make sure you&#39;ve typed everything correctly! Invalid requests will be
+                        rejected by the server.<br/><br/>Please contact support if you require assistance!</p>
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-light" type="button" data-dismiss="modal">Close</button>
