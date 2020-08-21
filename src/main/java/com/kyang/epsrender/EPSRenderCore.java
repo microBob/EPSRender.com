@@ -1,8 +1,8 @@
 package com.kyang.epsrender;
 
-import com.kyang.epsrender.models.JobRequest;
-import com.kyang.epsrender.models.Meta;
-import com.kyang.epsrender.models.Node;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kyang.epsrender.Enums.MessageType;
+import com.kyang.epsrender.models.*;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 
@@ -21,6 +21,37 @@ public class EPSRenderCore {
 
         // SECTION: Register nodes
         serverMeta.addServerNode(new Node("Tester 1", "10.68.68.111", 3));
+
+
+        // SECTION: Open communication
+        app.ws("/communication", ws -> {
+            ws.onConnect(ctx -> {
+                System.out.println("[WS Connection]: " + ctx.getSessionId());
+                ctx.send(new Message(MessageType.BlenderFrames, new BlenderFrames(0, 0)));
+            });
+            ws.onClose(ctx -> {
+                System.out.println("[WS Disconnected]: " + ctx.getSessionId());
+            });
+            ws.onMessage(ctx -> {
+                System.out.println("[WS Message]: " + ctx.message());
+//                ctx.send("Hello Back");
+                ObjectMapper mapper = new ObjectMapper();
+
+                Message inMessage = mapper.readValue(ctx.message(), Message.class);
+
+                switch (inMessage.getType()) {
+                    case BlenderFrames:
+//                        BlenderFrames blenderFrames = mapper.readValue(inMessage.getPayload(), BlenderFrames.class);
+                        BlenderFrames blenderFrames = (BlenderFrames) inMessage.getData();
+                        System.out.println("[Blender Frames]: " + blenderFrames.getStartFrame() + ", " + blenderFrames.getEndFrame());
+
+                        break;
+                    default:
+                        System.out.println("[Message Parsing Error] Unknown type " + inMessage.getType().toString());
+                        break;
+                }
+            });
+        });
 
 
         //SECTION: Login
@@ -94,9 +125,9 @@ public class EPSRenderCore {
                 serverMeta.addToActionQueue(jobRequest);
             }
 
-            System.out.println("[Debug]: JobQueue count: "+serverMeta.getJobQueue().size());
-            System.out.println("[Debug]: ActionQueue count: "+serverMeta.getActionQueue().size());
-            System.out.println("[Debug]: BlenderJobs count: "+serverMeta.getBlenderJobs().size());
+            System.out.println("[Debug]: JobQueue count: " + serverMeta.getJobQueue().size());
+            System.out.println("[Debug]: ActionQueue count: " + serverMeta.getActionQueue().size());
+            System.out.println("[Debug]: BlenderJobs count: " + serverMeta.getBlenderJobs().size());
         });
         // SECTION ^: Adding a new Job
 
