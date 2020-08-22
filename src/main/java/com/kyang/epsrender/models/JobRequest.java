@@ -4,116 +4,34 @@ import com.kyang.epsrender.Enums.ProjectType;
 import com.kyang.epsrender.Enums.JobStatus;
 
 import java.io.*;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class JobRequest {
     // SECTION: Properties
     private String userEmail;
     private ProjectType projectType;
-    private boolean blenderUseAll = false;
-    private int blenderStartFrame;
-    private int blenderEndFrame;
-    private String projectFile;
-    private JobStatus status;
-    private int blenderFramesRendered = 0;
-    private int blenderCurrentFrame;
-    private int blenderDistributedAmount;
+    private String projectFolderName;
+    private BlenderProjectInfo blenderInfo;
+
+    private boolean verified;
+    private String errorMsg;
+    private String timeAdded;
+    private JobStatus jobStatus;
 
 
     // SECTION: Constructors
-    // shortcut for Adobe or blender that uses all frames
-    public JobRequest(String userEmail, int projectType, String projectFolderName) {
+    public JobRequest(String userEmail, ProjectType projectType, String projectFolderName, BlenderProjectInfo blenderInfo) {
         this.userEmail = userEmail;
-        this.projectType = ProjectType.values()[projectType];
-        this.projectFile = IdentifyProjectFile(projectFolderName, this.projectType);
+        this.projectType = projectType;
+        this.projectFolderName = projectFolderName;
+        this.blenderInfo = blenderInfo;
 
-        if (projectType > 1) { // using blender type
-            blenderUseAll = true;
-        }
-    }
-
-    // for blender with specific frames
-    public JobRequest(String userEmail, int projectType, String projectFolderName, int blenderStartFrame, int blenderEndFrame) {
-        this.userEmail = userEmail;
-        this.projectType = ProjectType.values()[projectType];
-        this.projectFile = IdentifyProjectFile(projectFolderName, this.projectType);
-        this.blenderStartFrame = blenderStartFrame;
-        this.blenderEndFrame = blenderEndFrame;
+        setTimeAddedNow();
     }
 
 
-    // SECTION: internal methods
-    private String IdentifyProjectFile(String projectFolderName, ProjectType projectType) {
-        File projectDir = new File(projectFolderName);
-        File[] files = projectDir.listFiles();
-
-        if (files == null) {
-            // Abort!
-            System.out.println("[Reject Error]: project directory invalid!");
-            // TODO: create/add reject function
-            return "";
-        } else if (files.length == 0) {
-            // Abort!
-            System.out.println("[Reject Error]: project directory invalid!");
-            // TODO: create/add reject function
-            return "";
-        } else {
-            File targetFile = null;
-            boolean failed = false;
-            fileSearch:
-            for (File f : files) {
-                switch (projectType) {
-                    case PremierePro:
-                        if (f.toString().endsWith(".prproj")) {
-                            if (targetFile == null) {
-                                targetFile = f;
-                            } else {
-                                failed = true;
-                                break fileSearch;
-                            }
-                        }
-                        break;
-                    case AfterEffects:
-                        if (f.toString().endsWith(".aep") || f.toString().endsWith(".aepx")) {
-                            if (targetFile == null) {
-                                targetFile = f;
-                            } else {
-                                failed = true;
-                                break fileSearch;
-                            }
-                        }
-                        break;
-                    default:
-                        if (f.toString().endsWith(".blend")) {
-                            if (targetFile == null) {
-                                targetFile = f;
-                            } else {
-                                failed = true;
-                                break fileSearch;
-                            }
-                        }
-                        break;
-                }
-            }
-
-            if (failed) {
-                // Abort!
-                System.out.println("[Reject Error]: multiple project files detected!");
-                // TODO: create/add reject function
-                return "";
-            } else if (targetFile == null) {
-                // Abort!
-                System.out.println("[Reject Error]: could not find project file in directory!");
-                // TODO: create/add reject function
-                return "";
-            } else {
-                return targetFile.toString();
-            }
-        }
-    }
-
-
-    // SECTION: Delegate methods
-
+    // SECTION: Getters and setters
     public String getUserEmail() {
         return userEmail;
     }
@@ -130,67 +48,56 @@ public class JobRequest {
         this.projectType = projectType;
     }
 
-    public boolean isBlenderUseAll() {
-        return blenderUseAll;
+    public String getProjectFolderName() {
+        return projectFolderName;
     }
 
-    public void setBlenderUseAll(boolean blenderUseAll) {
-        this.blenderUseAll = blenderUseAll;
+    public void setProjectFolderName(String projectFolderName) {
+        this.projectFolderName = projectFolderName;
     }
 
-    public int getBlenderStartFrame() {
-        return blenderStartFrame;
+    public BlenderProjectInfo getBlenderInfo() {
+        return blenderInfo;
     }
 
-    public void setBlenderStartFrame(int blenderStartFrame) {
-        this.blenderStartFrame = blenderStartFrame;
+    public void setBlenderInfo(BlenderProjectInfo blenderInfo) {
+        this.blenderInfo = blenderInfo;
     }
 
-    public int getBlenderEndFrame() {
-        return blenderEndFrame;
+    public boolean isVerified() {
+        return verified;
     }
 
-    public void setBlenderEndFrame(int blenderEndFrame) {
-        this.blenderEndFrame = blenderEndFrame;
+    public void setVerified(boolean verified) {
+        this.verified = verified;
     }
 
-    public String getProjectFile() {
-        return projectFile;
+    public String getErrorMsg() {
+        return errorMsg;
     }
 
-    public void setProjectFile(String projectFile) {
-        this.projectFile = projectFile;
+    public void setErrorMsg(String errorMsg) {
+        this.errorMsg = errorMsg;
     }
 
-    public JobStatus getStatus() {
-        return status;
+    public String getTimeAdded() {
+        return timeAdded;
     }
 
-    public void setStatus(JobStatus status) {
-        this.status = status;
+    public void setTimeAdded(String timeAdded) {
+        this.timeAdded = timeAdded;
     }
 
-    public int getBlenderFramesRendered() {
-        return blenderFramesRendered;
+    private void setTimeAddedNow() {
+        SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy hh:mm:ss aa");
+        this.timeAdded = formatter.format(new Date());
     }
 
-    public void setBlenderFramesRendered(int blenderFramesRendered) {
-        this.blenderFramesRendered = blenderFramesRendered;
+    public JobStatus getJobStatus() {
+        return jobStatus;
     }
 
-    public int getBlenderCurrentFrame() {
-        return blenderCurrentFrame;
-    }
-
-    public void setBlenderCurrentFrame(int blenderCurrentFrame) {
-        this.blenderCurrentFrame = blenderCurrentFrame;
-    }
-
-    public int getBlenderDistributedAmount() {
-        return blenderDistributedAmount;
-    }
-
-    public void setBlenderDistributedAmount(int blenderDistributedAmount) {
-        this.blenderDistributedAmount = blenderDistributedAmount;
+    public void setJobStatus(JobStatus jobStatus) {
+        this.jobStatus = jobStatus;
     }
 }

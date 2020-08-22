@@ -8,12 +8,12 @@ import java.util.ArrayList;
 
 public class Meta {
     private ArrayList<JobRequest> jobQueue = new ArrayList<>();
-    private ArrayList<JobRequest> actionQueue = new ArrayList<>();
-    private ArrayList<JobRequest> blenderJobs = new ArrayList<>();
+    private ArrayList<JobRequest> verifyingQueue = new ArrayList<>();
+    private ArrayList<JobRequest> blenderQueue = new ArrayList<>();
     private ArrayList<Node> serverNodes = new ArrayList<>();
 
 
-    // SECTION: delegate methods
+    // SECTION: Getters and setters
 
     public ArrayList<JobRequest> getJobQueue() {
         return jobQueue;
@@ -24,86 +24,28 @@ public class Meta {
     }
 
     public void addToJobQueue(JobRequest jobRequest) {
-        jobRequest.setStatus(JobStatus.Queued);
+        jobRequest.setJobStatus(JobStatus.Queued);
         this.jobQueue.add(jobRequest);
     }
 
-    public ArrayList<JobRequest> getActionQueue() {
-        return actionQueue;
+    public ArrayList<JobRequest> getVerifyingQueue() {
+        return verifyingQueue;
     }
 
-    public void setActionQueue(ArrayList<JobRequest> actionQueue) {
-        this.actionQueue = actionQueue;
+    public void setVerifyingQueue(ArrayList<JobRequest> verifyingQueue) {
+        this.verifyingQueue = verifyingQueue;
     }
 
-    public void addToActionQueue(JobRequest jobRequest) {
-        jobRequest.setStatus(JobStatus.Queued);
-        this.addToJobQueue(jobRequest);
-
-        // add job to rabbit server if there's availability
-        // TODO: needs testing and documentation
-
-        if (nodesAvailable()) {
-            // TODO: send to rabbit mq
-        } else {
-            this.actionQueue.add(jobRequest);
-        }
+    public ArrayList<JobRequest> getBlenderQueue() {
+        return blenderQueue;
     }
 
-    public JobRequest popActionQueue() {
-        JobRequest first = this.actionQueue.get(0);
-        this.actionQueue.remove(0);
-        return first;
-    }
-
-    public ArrayList<JobRequest> getBlenderJobs() {
-        return blenderJobs;
-    }
-
-    public void setBlenderJobs(ArrayList<JobRequest> blenderJobs) {
-        this.blenderJobs = blenderJobs;
-    }
-
-    public void addToBlenderJobs(JobRequest jobRequest) {
-        jobRequest.setStatus(JobStatus.Queued);
-
-        if (nodesAvailable()) {
-            queNextBlender();
-        } else {
-            this.blenderJobs.add(jobRequest);
-        }
-    }
-
-    public void queNextBlender() {
-        ArrayList<JobRequest> openBlenderJobs = new ArrayList<>();
-        for (JobRequest job : jobQueue) {
-            if (job.getProjectType().compareTo(ProjectType.AfterEffects) > 0) {
-                openBlenderJobs.add(job);
-            }
-        }
-
-        JobRequest lowestCount = openBlenderJobs.get(0);
-        if (openBlenderJobs.size() > 1) {
-            for (JobRequest job : openBlenderJobs) {
-                if (job.equals(openBlenderJobs.get(0))) {
-                    continue;
-                }
-                if (job.getBlenderDistributedAmount() < lowestCount.getBlenderDistributedAmount()) {
-                    lowestCount = job;
-                }
-            }
-        }
-
-        for (JobRequest blenderJob : blenderJobs) {
-            if (blenderJob.getProjectFile().equals(lowestCount.getProjectFile())) {
-                addToActionQueue(blenderJob);
-                removeBlenderJob(blenderJob);
-            }
-        }
+    public void setBlenderQueue(ArrayList<JobRequest> blenderQueue) {
+        this.blenderQueue = blenderQueue;
     }
 
     public void removeBlenderJob(JobRequest blenderJob) {
-        this.blenderJobs.remove(blenderJob);
+        this.blenderQueue.remove(blenderJob);
     }
 
     public ArrayList<Node> getServerNodes() {

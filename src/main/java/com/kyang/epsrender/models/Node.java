@@ -8,6 +8,7 @@ public class Node {
     // SECTION: Properties
     private String nodeName;
     private String ipAddress;
+    private String ctxSessionID;
     private PowerIndex powerIndex;
     private NodeStatus nodeStatus = NodeStatus.Ready;
     private JobRequest currentJob;
@@ -15,9 +16,10 @@ public class Node {
 
     // SECTION: Constructors
     // registering a new node
-    public Node(String nodeName, String ipAddress, int powerIndex) {
+    public Node(String nodeName, String ipAddress, String ctxSessionID, int powerIndex) {
         this.nodeName = nodeName;
         this.ipAddress = ipAddress;
+        this.ctxSessionID = ctxSessionID;
         this.powerIndex = PowerIndex.values()[powerIndex];
     }
 
@@ -29,7 +31,7 @@ public class Node {
         // TODO: pop next job from action and handle get from blender if nothing in action
     }
 
-    // SECTION: Delegate Methods
+    // SECTION: Getters and setters
     public String getNodeName() {
         return nodeName;
     }
@@ -44,6 +46,14 @@ public class Node {
 
     public void setIpAddress(String ipAddress) {
         this.ipAddress = ipAddress;
+    }
+
+    public String getCtxSessionID() {
+        return ctxSessionID;
+    }
+
+    public void setCtxSessionID(String ctxSessionID) {
+        this.ctxSessionID = ctxSessionID;
     }
 
     public PowerIndex getPowerIndex() {

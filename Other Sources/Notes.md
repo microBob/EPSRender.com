@@ -125,12 +125,12 @@
 
 ### Server Meta (`.models.Meta`)
 
-| Property        | Variable Name    | Type               | Notes                                       |
-| --------------- | ---------------- | ------------------ | ------------------------------------------- |
-| Job Queue       | `jobQueue`       | `List<JobRequest>` | holds all current requests their statuses   |
-| Verifying Queue | `verifyingQueue` | `List<JobRequest>` | copy of an unverified request in `jobQueue` |
-| Blender Queue   | `blenderQueue`   | `List<JobRequest>` | holds verified blender frames               |
-| Server nodes    | `serverNodes`    | `List<Node>`       |                                             |
+| Property        | Variable Name    | Type                    | Notes                                       |
+| --------------- | ---------------- | ----------------------- | ------------------------------------------- |
+| Job Queue       | `jobQueue`       | `ArrayList<JobRequest>` | holds all current requests their statuses   |
+| Verifying Queue | `verifyingQueue` | `ArrayList<JobRequest>` | copy of an unverified request in `jobQueue` |
+| Blender Queue   | `blenderQueue`   | `ArrayList<JobRequest>` | holds verified blender frames               |
+| Server nodes    | `serverNodes`    | `ArrayList<Node>`       |                                             |
 ### Server Node (`.models.Node`)
 
 | Property           | Variable Name  | Type         | Notes                                   |
@@ -157,29 +157,29 @@
 | *<u>{Input parameter}</u>*<br />Project Type                 | `projectType`       | `ProjectType`        |                                      |
 | <u>*{Input parameter}*</u><br />Project Folder Name          | `projectFolderName` | `String`             |                                      |
 | <u>*{Input parameter}*</u><br />Blender project rendering info | `blenderInfo`       | `BlenderProjectInfo` | combination data for blender renders |
-| Verified                                                     | `verified`          | `bool`               | Only verified requests can be queued |
+| Verified                                                     | `verified`          | `boolean`            | Only verified requests can be queued |
 | Verification Error Msg                                       | `errorMsg`          | `String`             | built by node                        |
 | Time Added                                                   | `timeAdded`         | `String`             | Java Date converted to string        |
 | Job Status                                                   | `jobStatus`         | `JobStatus`          |                                      |
 
 ### Blender Project Info (`.models.BlenderProjectInfo`)
 
-| Property            | Variable Name     | Type     | Notes                                         |
-| ------------------- | ----------------- | -------- | --------------------------------------------- |
-| Start Frame         | `startFrame`      | `int`    |                                               |
-| End Frame           | `endFrame`        | `int`    |                                               |
-| Use all frames?     | `useAllFrames`    | `bool`   |                                               |
-| Project Filename    | `fileName`        | `String` | acquired after verification                   |
-| Frame Number        | `frameNumber`     | `int`    | Frame number this job represents<br />        |
-| Frames completed    | `framesCompleted` | `int`    | `= (endFrame - startFrame) - `frames in queue |
-| Number of renderers | `renderers`       | `int`    | number of nodes working on this               |
+| Property            | Variable Name     | Type      | Notes                                         |
+| ------------------- | ----------------- | --------- | --------------------------------------------- |
+| Start Frame         | `startFrame`      | `int`     |                                               |
+| End Frame           | `endFrame`        | `int`     |                                               |
+| Use all frames?     | `useAllFrames`    | `boolean` |                                               |
+| Project Filename    | `fileName`        | `String`  | acquired after verification                   |
+| Frame Number        | `frameNumber`     | `int`     | Frame number this job represents<br />        |
+| Frames completed    | `framesCompleted` | `int`     | `= (endFrame - startFrame) - `frames in queue |
+| Number of renderers | `renderers`       | `int`     | number of nodes working on this               |
 
 ### Server Update Info (`.models.ServerUpdateInfo`)
 
-| Property      | Variable Name | Type               | Notes                                    |
-| ------------- | ------------- | ------------------ | ---------------------------------------- |
-| Job Queue     | `jobQueue`    | `List<JobRequest>` | merge of `jobQueue` and `verifyingQueue` |
-| Server Status | `serverStat`  | `List<Node>`       | sorted `ready -> rendering -> offline`   |
+| Property      | Variable Name | Type                    | Notes                                    |
+| ------------- | ------------- | ----------------------- | ---------------------------------------- |
+| Job Queue     | `jobQueue`    | `ArrayList<JobRequest>` | merge of `jobQueue` and `verifyingQueue` |
+| Server Status | `serverStat`  | `ArrayList<Node>`       | sorted `ready -> rendering -> offline`   |
 
 ## Server logic
 

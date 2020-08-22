@@ -6,14 +6,9 @@ import com.kyang.epsrender.Enums.MessageType;
 
 public class Message {
     private MessageType type;
+    private JobRequest data;
 
-    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", include = JsonTypeInfo.As.EXTERNAL_PROPERTY)
-    @JsonSubTypes(value = {
-            @JsonSubTypes.Type(value = BlenderFrames.class, name = "0")
-    })
-    private MessageData data;
-
-    public Message(MessageType type, MessageData data) {
+    public Message(MessageType type, JobRequest data) {
         this.type = type;
         this.data = data;
     }
@@ -33,7 +28,7 @@ public class Message {
         return data;
     }
 
-    public void setData(MessageData data) {
+    public void setData(JobRequest  data) {
         this.data = data;
     }
 }
