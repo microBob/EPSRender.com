@@ -35,9 +35,10 @@ public class EPSRenderCore {
                 Node unknownNode = new Node(ctx.getSessionId());
                 serverMeta.addServerNode(unknownNode);
 
-                // create blank handshake and send
+                // create blank handshake and send ID
                 Message handshake = new Message(MessageType.NewNodeHandshake, null);
                 ctx.send(mapper.writeValueAsString(handshake));
+                ctx.send(ctx.getSessionId());
             });
             ws.onClose(ctx -> {
                 // get node fro ctx ID
@@ -55,29 +56,7 @@ public class EPSRenderCore {
             ws.onMessage(ctx -> {
                 System.out.println("[WS Message]: " + ctx.message());
 
-                try { // try to unpack new message as a Job related message (typical)
-                    Message inMessage = mapper.readValue(ctx.message(), Message.class);
-
-                    switch (inMessage.getType()) {
-                        case VerifyBlender:
-//                        BlenderFrames blenderFrames = mapper.readValue(inMessage.getPayload(), BlenderFrames.class);
-                            BlenderProjectInfo blenderProjectInfo = (BlenderProjectInfo) inMessage.getData();
-                            System.out.println("[Blender Frames]: " + blenderProjectInfo.getStartFrame() + ", " + blenderProjectInfo.getEndFrame());
-
-                            break;
-                        case VerifyPremiere:
-                            break;
-                        case VerifyAE:
-                            break;
-                        case RenderBlender:
-                            break;
-                        case RenderME:
-                            break;
-                        default:
-                            System.out.println("[Message Parsing Error] Unknown type " + inMessage.getType().toString());
-                            break;
-                    }
-                } catch (Error potentialError) { // if not, try to see if it's a new node handshake
+                if (ctx.message().contains("{\"ctxSessionID\"")) { // check if it's a new node handshake
                     try {
                         NodeHandshakeInfo handshakeInfo = mapper.readValue(ctx.message(), NodeHandshakeInfo.class);
 
@@ -87,8 +66,34 @@ public class EPSRenderCore {
                         newNode.setPowerIndex(handshakeInfo.getPowerIndex());
 
                         System.out.println("[New Node]: " + newNode.getNodeName() + "!");
-                    } catch (Error realError) { // now we actually have a problem
-                        System.out.println("[WS Message Error]: " + realError.getMessage());
+                    } catch (Error error) { // now we actually have a problem
+                        System.out.println("[WS Message Error]: " + error.getMessage());
+                    }
+                } else { // more typically, it's a job message
+                    try {
+                        Message inMessage = mapper.readValue(ctx.message(), Message.class);
+
+                        switch (inMessage.getType()) {
+                            case VerifyBlender:
+//                        BlenderFrames blenderFrames = mapper.readValue(inMessage.getPayload(), BlenderFrames.class);
+                                BlenderProjectInfo blenderProjectInfo = (BlenderProjectInfo) inMessage.getData();
+                                System.out.println("[Blender Frames]: " + blenderProjectInfo.getStartFrame() + ", " + blenderProjectInfo.getEndFrame());
+
+                                break;
+                            case VerifyPremiere:
+                                break;
+                            case VerifyAE:
+                                break;
+                            case RenderBlender:
+                                break;
+                            case RenderME:
+                                break;
+                            default:
+                                System.out.println("[Message Parsing Error] Unknown type " + inMessage.getType().toString());
+                                break;
+                        }
+                    } catch (Error error) {
+                        System.out.println("[WS Message Error]: " + error.getMessage());
                     }
                 }
             });
