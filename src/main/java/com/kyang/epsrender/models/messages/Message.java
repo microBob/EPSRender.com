@@ -1,8 +1,7 @@
-package com.kyang.epsrender.models;
+package com.kyang.epsrender.models.messages;
 
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.kyang.epsrender.Enums.MessageType;
+import com.kyang.epsrender.models.messages.JobRequest;
 
 public class Message {
     private MessageType type;

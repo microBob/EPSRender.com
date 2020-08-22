@@ -3,7 +3,12 @@ package com.kyang.epsrender;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kyang.epsrender.Enums.MessageType;
 import com.kyang.epsrender.Enums.NodeStatus;
-import com.kyang.epsrender.models.*;
+import com.kyang.epsrender.models.messages.BlenderProjectInfo;
+import com.kyang.epsrender.models.messages.Message;
+import com.kyang.epsrender.models.messages.NodeHandshakeInfo;
+import com.kyang.epsrender.models.messages.ServerUpdateInfo;
+import com.kyang.epsrender.models.server.Meta;
+import com.kyang.epsrender.models.server.Node;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 
@@ -162,6 +167,8 @@ public class EPSRenderCore {
         app.get("/update_server_stat", ctx -> {
             // Get info
             ServerUpdateInfo updateInfo = new ServerUpdateInfo(serverMeta.getJobQueue(), serverMeta.getVerifyingQueue(), serverMeta.getServerNodes());
+            // Send it over
+            ctx.result(mapper.writeValueAsString(updateInfo));
         });
         // SECTION ^: Server Status
 

@@ -1,4 +1,4 @@
-package com.kyang.epsrender.models;
+package com.kyang.epsrender.models.messages;
 
 public class BlenderProjectInfo {
     // SECTION: Properties

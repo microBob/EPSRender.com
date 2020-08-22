@@ -1,8 +1,8 @@
-package com.kyang.epsrender.models;
+package com.kyang.epsrender.models.server;
 
 import com.kyang.epsrender.Enums.JobStatus;
 import com.kyang.epsrender.Enums.NodeStatus;
-import com.kyang.epsrender.Enums.ProjectType;
+import com.kyang.epsrender.models.messages.JobRequest;
 
 import java.util.ArrayList;
 

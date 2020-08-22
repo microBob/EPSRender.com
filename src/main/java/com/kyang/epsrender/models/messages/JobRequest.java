@@ -1,9 +1,9 @@
-package com.kyang.epsrender.models;
+package com.kyang.epsrender.models.messages;
 
 import com.kyang.epsrender.Enums.ProjectType;
 import com.kyang.epsrender.Enums.JobStatus;
+import com.kyang.epsrender.models.messages.BlenderProjectInfo;
 
-import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 

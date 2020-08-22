@@ -1,8 +1,10 @@
-package com.kyang.epsrender.models;
+package com.kyang.epsrender.models.server;
 
 import com.kyang.epsrender.EPSRenderCore;
 import com.kyang.epsrender.Enums.NodeStatus;
 import com.kyang.epsrender.Enums.PowerIndex;
+import com.kyang.epsrender.models.messages.JobRequest;
+import com.kyang.epsrender.models.server.Meta;
 
 public class Node {
     // SECTION: Properties
