@@ -119,7 +119,7 @@
 | Job Status       | `JobStatus`   | `0 = Verifying`<br />`1 = Queued`<br />`2 = Rendering`       |                                                              |
 | Node Power Index | `PowerIndex`  | `0 = Ultra`<br />`1 = High`<br />`2 = Mid`<br />`3 = Low`    | Tower 1<br />VR 1<br />Corsair 1, 2<br />DELL 1, 2, 3        |
 | Node Status      | `NodeStatus`  | `0 = Ready`<br />`1 = Rendering`<br />`2 = Offline`          |                                                              |
-| Message Type     | `MessageType` | `0 = VerifyBlender`<br />`1 = VerifyPremiere`<br />`2 = VerifyAE`<br /><br />`3 = RenderBlender`<br />`4 = RenderME` | Verify primarily is used to identify if a file can be found<br />Blender verify includes getting frames<br /><br />messages received from node means "done" |
+| Message Type     | `MessageType` | `0 = VerifyBlender`<br />`1 = VerifyPremiere`<br />`2 = VerifyAE`<br />`3 = RenderBlender`<br />`4 = RenderME`<br />`5 = NewNodeHandshake` | Verify primarily is used to identify if a file can be found<br />Blender verify includes getting frames<br /><br />messages received from node means "done"<br /><br /> |
 
 ## Models
 
@@ -136,7 +136,6 @@
 | Property           | Variable Name  | Type         | Notes                                   |
 | ------------------ | -------------- | ------------ | --------------------------------------- |
 | Node name          | `nodeName`     | `String`     | Used to display<br />must be unique     |
-| IP Address         | `ipAddress`    | `String`     | unique identifier                       |
 | Context session ID | `ctxSessionID` | `String`     | acquired when first connected to Server |
 | Power Index        | `powerIndex`   | `PowerIndex` |                                         |
 | Node status        | `nodeStatus`   | `NodeStatus` |                                         |
@@ -181,6 +180,15 @@
 | Job Queue     | `jobQueue`    | `ArrayList<JobRequest>` | merge of `jobQueue` and `verifyingQueue` |
 | Server Status | `serverStat`  | `ArrayList<Node>`       | sorted `ready -> rendering -> offline`   |
 
+### Node handshake Info (`.models.NodeHandshakeInfo`)
+
+| Property    | Variable Name | Type         | Notes |
+| ----------- | ------------- | ------------ | ----- |
+| Node name   | `nodeName`    | `String`     |       |
+| Power index | `powerIndex`  | `PowerIndex` |       |
+
+
+
 ## Server logic
 
 ### Get new Job Request (from Front-end)
@@ -194,11 +202,12 @@
 1. pull the oldest item from `verifyingQueue` and send to node to verify
 	1. mark node rendering with job
 2. check `jobQueue`
-	1. if there is a rendering blender job with 0 working nodes, send next frame of this project from `blenderQueue` to node
+	1. check `0` index for necro jobs (jobs from dead nodes)
+	2. if there is a rendering blender job with 0 working nodes, send next frame of this project from `blenderQueue` to node
 		1. mark node rendering with job
-	2. pick the next ME job
+	3. pick the next ME job
 		1. mark node rendering with job
-	3. pick the next frame in the oldest blender job
+	4. pick the next frame in the oldest blender job
 		1. mark node rendering with job
 
 ### Received verify (node completed verification)
@@ -224,6 +233,12 @@
 3. if ME
 	1. send email to user on completion
 	2. remove `JobRequest` from queues
+
+### New node handshake (when a new node connects)
+
+1. create a new (empty) node with `ctxSessionID`
+2. send `NewNodeIntro` message to node
+3. parse response and fill out rest of `Node`
 
 # NodeJS (Client)
 

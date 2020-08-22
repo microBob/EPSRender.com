@@ -1,5 +1,6 @@
 package com.kyang.epsrender.models;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class ServerUpdateInfo {
@@ -12,6 +13,11 @@ public class ServerUpdateInfo {
     public ServerUpdateInfo(ArrayList<JobRequest> jobQueue, ArrayList<Node> serverStat) {
         this.jobQueue = jobQueue;
         this.serverStat = serverStat;
+    }
+
+    public ServerUpdateInfo(ArrayList<JobRequest> jobQueue, ArrayList<JobRequest> verifyingQueue, ArrayList<Node> nodes) {
+        ArrayList<JobRequest> jobQueueMerged = new ArrayList<>();
+        ArrayList<Node> nodesSorted = new ArrayList<>();
     }
 
     // SECTION: Getters and setters

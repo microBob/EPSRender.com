@@ -28,6 +28,10 @@ public class Meta {
         this.jobQueue.add(jobRequest);
     }
 
+    public void addToJobQueueBeginning(JobRequest jobRequest) {
+        this.jobQueue.add(0, jobRequest);
+    }
+
     public ArrayList<JobRequest> getVerifyingQueue() {
         return verifyingQueue;
     }
@@ -50,6 +54,16 @@ public class Meta {
 
     public ArrayList<Node> getServerNodes() {
         return serverNodes;
+    }
+
+    public Node getServerNodeWithID(String ctxID) {
+        for (Node n : serverNodes) {
+            if (n.getCtxSessionID().equals(ctxID)) {
+                return n;
+            }
+        }
+
+        return null;
     }
 
     public void setServerNodes(ArrayList<Node> serverNodes) {

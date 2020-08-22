@@ -17,7 +17,7 @@ public class JobRequest {
     private boolean verified;
     private String errorMsg;
     private String timeAdded;
-    private JobStatus jobStatus;
+    private JobStatus jobStatus = JobStatus.Verifying;
 
 
     // SECTION: Constructors

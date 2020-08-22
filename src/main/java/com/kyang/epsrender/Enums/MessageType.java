@@ -8,5 +8,6 @@ public enum MessageType {
     VerifyPremiere,
     VerifyAE,
     RenderBlender,
-    RenderME
+    RenderME,
+    NewNodeHandshake,
 }

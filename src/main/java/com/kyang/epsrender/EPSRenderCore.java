@@ -1,6 +1,8 @@
 package com.kyang.epsrender;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kyang.epsrender.Enums.MessageType;
+import com.kyang.epsrender.Enums.NodeStatus;
 import com.kyang.epsrender.models.*;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
@@ -14,39 +16,80 @@ public class EPSRenderCore {
 
     public static void main(String[] args) {
         Javalin app = Javalin.create(config -> config.addStaticFiles("/public")).start(7000);
+        ObjectMapper mapper = new ObjectMapper();
 
         app.get("/test", ctx -> ctx.result("Test again"));
 
 
-        // SECTION: Register nodes
-        //noinspection SpellCheckingInspection
-        serverMeta.addServerNode(new Node("Tester 1", "10.68.68.111", "kjasdhf9ia768927huisdaf9", 3));
+//        // SECTION: Register nodes
+//        //noinspection SpellCheckingInspection
+//        serverMeta.addServerNode(new Node("Tester 1", "kjasdhf9ia768927huisdaf9", 3));
 
 
         // SECTION: Open communication
         app.ws("/communication", ws -> {
             ws.onConnect(ctx -> {
                 System.out.println("[WS Connection]: " + ctx.getSessionId());
+
+                // create new blank node with ctx
+                Node unknownNode = new Node(ctx.getSessionId());
+                serverMeta.addServerNode(unknownNode);
+
+                // create blank handshake and send
+                Message handshake = new Message(MessageType.NewNodeHandshake, null);
+                ctx.send(mapper.writeValueAsString(handshake));
             });
             ws.onClose(ctx -> {
-                System.out.println("[WS Disconnected]: " + ctx.getSessionId());
+                // get node fro ctx ID
+                Node disNode = serverMeta.getServerNodeWithID(ctx.getSessionId());
+                // print disconnect
+                System.out.println("[Node Disconnected]: " + disNode.getNodeName() + " disconnected!");
+                // set status to offline
+                disNode.setNodeStatus(NodeStatus.Offline);
+
+                // handle job (if died with job)
+                if (disNode.getCurrentJob() != null) {
+                    serverMeta.addToJobQueueBeginning(disNode.getCurrentJob());
+                }
             });
             ws.onMessage(ctx -> {
                 System.out.println("[WS Message]: " + ctx.message());
-                ObjectMapper mapper = new ObjectMapper();
 
-                Message inMessage = mapper.readValue(ctx.message(), Message.class);
+                try { // try to unpack new message as a Job related message (typical)
+                    Message inMessage = mapper.readValue(ctx.message(), Message.class);
 
-                switch (inMessage.getType()) {
-                    case VerifyBlender:
+                    switch (inMessage.getType()) {
+                        case VerifyBlender:
 //                        BlenderFrames blenderFrames = mapper.readValue(inMessage.getPayload(), BlenderFrames.class);
-                        BlenderProjectInfo blenderProjectInfo = (BlenderProjectInfo) inMessage.getData();
-                        System.out.println("[Blender Frames]: " + blenderProjectInfo.getStartFrame() + ", " + blenderProjectInfo.getEndFrame());
+                            BlenderProjectInfo blenderProjectInfo = (BlenderProjectInfo) inMessage.getData();
+                            System.out.println("[Blender Frames]: " + blenderProjectInfo.getStartFrame() + ", " + blenderProjectInfo.getEndFrame());
 
-                        break;
-                    default:
-                        System.out.println("[Message Parsing Error] Unknown type " + inMessage.getType().toString());
-                        break;
+                            break;
+                        case VerifyPremiere:
+                            break;
+                        case VerifyAE:
+                            break;
+                        case RenderBlender:
+                            break;
+                        case RenderME:
+                            break;
+                        default:
+                            System.out.println("[Message Parsing Error] Unknown type " + inMessage.getType().toString());
+                            break;
+                    }
+                } catch (Error potentialError) { // if not, try to see if it's a new node handshake
+                    try {
+                        NodeHandshakeInfo handshakeInfo = mapper.readValue(ctx.message(), NodeHandshakeInfo.class);
+
+                        // fill in rest of node handshake
+                        Node newNode = serverMeta.getServerNodeWithID(handshakeInfo.getCtxSessionID());
+                        newNode.setNodeName(handshakeInfo.getNodeName());
+                        newNode.setPowerIndex(handshakeInfo.getPowerIndex());
+
+                        System.out.println("[New Node]: " + newNode.getNodeName() + "!");
+                    } catch (Error realError) { // now we actually have a problem
+                        System.out.println("[WS Message Error]: " + realError.getMessage());
+                    }
                 }
             });
         });
@@ -112,7 +155,8 @@ public class EPSRenderCore {
 
         // SECTION: Server Status
         app.get("/update_server_stat", ctx -> {
-            
+            // Get info
+            ServerUpdateInfo updateInfo = new ServerUpdateInfo(serverMeta.getJobQueue(), serverMeta.getVerifyingQueue(), serverMeta.getServerNodes());
         });
         // SECTION ^: Server Status
 

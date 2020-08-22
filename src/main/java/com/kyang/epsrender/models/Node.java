@@ -7,7 +7,6 @@ import com.kyang.epsrender.Enums.PowerIndex;
 public class Node {
     // SECTION: Properties
     private String nodeName;
-    private String ipAddress;
     private String ctxSessionID;
     private PowerIndex powerIndex;
     private NodeStatus nodeStatus = NodeStatus.Ready;
@@ -15,12 +14,14 @@ public class Node {
 
 
     // SECTION: Constructors
-    // registering a new node
-    public Node(String nodeName, String ipAddress, String ctxSessionID, int powerIndex) {
+    public Node(String nodeName, String ctxSessionID, int powerIndex) {
         this.nodeName = nodeName;
-        this.ipAddress = ipAddress;
         this.ctxSessionID = ctxSessionID;
         this.powerIndex = PowerIndex.values()[powerIndex];
+    }
+
+    public Node(String ctxSessionID) {
+        this.ctxSessionID = ctxSessionID;
     }
 
 
@@ -31,6 +32,7 @@ public class Node {
         // TODO: pop next job from action and handle get from blender if nothing in action
     }
 
+
     // SECTION: Getters and setters
     public String getNodeName() {
         return nodeName;
@@ -38,14 +40,6 @@ public class Node {
 
     public void setNodeName(String nodeName) {
         this.nodeName = nodeName;
-    }
-
-    public String getIpAddress() {
-        return ipAddress;
-    }
-
-    public void setIpAddress(String ipAddress) {
-        this.ipAddress = ipAddress;
     }
 
     public String getCtxSessionID() {
