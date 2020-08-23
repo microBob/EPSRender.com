@@ -5,7 +5,7 @@ let userName = "";
 // SECTION: page init
 $(function () {
     updateLoginStatus();
-    // updateStatusBtn();
+    updateStatusBtn();
 })
 setInterval(updateStatusBtn, 60000);
 

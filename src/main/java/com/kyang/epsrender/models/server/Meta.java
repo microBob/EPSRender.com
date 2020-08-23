@@ -1,6 +1,5 @@
 package com.kyang.epsrender.models.server;
 
-import com.kyang.epsrender.Enums.JobStatus;
 import com.kyang.epsrender.Enums.NodeStatus;
 import com.kyang.epsrender.models.messages.JobRequest;
 import io.javalin.websocket.WsContext;
@@ -34,6 +33,15 @@ public class Meta {
         this.jobQueue.add(0, jobRequest);
     }
 
+    public JobRequest getJobFromJobQueue() {
+        for (JobRequest request : jobQueue) {
+            if (isJobTakenByNode(request)) {
+                return request;
+            }
+        }
+        return null;
+    }
+
     public ArrayList<JobRequest> getVerifyingQueue() {
         return verifyingQueue;
     }
@@ -44,6 +52,15 @@ public class Meta {
 
     public void addToVerifyingQueue(JobRequest jobRequest) {
         this.verifyingQueue.add(jobRequest);
+    }
+
+    public JobRequest getJobFromVerifyingQueue() {
+        for (JobRequest request : verifyingQueue) {
+            if (!isJobTakenByNode(request)) {
+                return request;
+            }
+        }
+        return null;
     }
 
     public ArrayList<JobRequest> getBlenderQueue() {
@@ -59,15 +76,30 @@ public class Meta {
     }
 
     public ArrayList<Node> getServerNodes() {
+        sortServerNodes();
         return serverNodes;
     }
 
     public Node getServerNodeWithID(String ctxID) {
-        return serverNodes.stream().filter(n -> ctxID.equals(n.getCtxSessionID())).findFirst().orElse(null);
+        return serverNodes.stream().filter(node -> ctxID.equals(node.getCtxSessionID())).findFirst().orElse(null);
     }
 
     public Node getServerNodeWithName(String nodeName) {
-        return serverNodes.stream().filter(n -> nodeName.equals(n.getNodeName())).findFirst().orElse(null);
+        return serverNodes.stream().filter(node -> nodeName.equals(node.getNodeName())).findFirst().orElse(null);
+    }
+
+    public Node getReadyServerNode() {
+        return getServerNodes().stream().filter(node -> node.getNodeStatus().equals(NodeStatus.Ready)).findFirst().orElse(null);
+    }
+
+    public boolean isJobTakenByNode(JobRequest jobRequest) {
+        for (Node node : serverNodes) {
+            JobRequest currentJob = node.getCurrentJob();
+            if (currentJob != null && currentJob.equals(jobRequest)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public void setServerNodes(ArrayList<Node> serverNodes) {
@@ -96,7 +128,6 @@ public class Meta {
 
 
     // SECTION: internal methods
-
     private boolean nodesAvailable() {
         if (getJobQueue().size() == 0) {
             for (Node node : getServerNodes()) {
@@ -106,5 +137,12 @@ public class Meta {
             }
         }
         return false;
+    }
+
+    private void sortServerNodes() {
+        // sort nodes based on comparator
+        if (serverNodes.size() > 1) {
+            serverNodes.sort(new NodeSortingComparator());
+        }
     }
 }
