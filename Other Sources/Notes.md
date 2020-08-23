@@ -137,12 +137,13 @@
 
 ### Server Meta (`.models.Meta`)
 
-| Property        | Variable Name    | Type                    | Notes                                       |
-| --------------- | ---------------- | ----------------------- | ------------------------------------------- |
-| Job Queue       | `jobQueue`       | `ArrayList<JobRequest>` | holds all current requests their statuses   |
-| Verifying Queue | `verifyingQueue` | `ArrayList<JobRequest>` | copy of an unverified request in `jobQueue` |
-| Blender Queue   | `blenderQueue`   | `ArrayList<JobRequest>` | holds verified blender frames               |
-| Server nodes    | `serverNodes`    | `ArrayList<Node>`       |                                             |
+| Property        | Variable Name    | Type                         | Notes                                       |
+| --------------- | ---------------- | ---------------------------- | ------------------------------------------- |
+| Job Queue       | `jobQueue`       | `ArrayList<JobRequest>`      | holds all current requests their statuses   |
+| Verifying Queue | `verifyingQueue` | `ArrayList<JobRequest>`      | copy of an unverified request in `jobQueue` |
+| Blender Queue   | `blenderQueue`   | `ArrayList<JobRequest>`      | holds verified blender frames               |
+| Server nodes    | `serverNodes`    | `ArrayList<Node>`            |                                             |
+| CTX and ID hash | `ctxIdHash`      | `HashMap<String, WsContext>` | link node CTX ID to the WsContext           |
 ### Server Node (`.models.Node`)
 
 | Property           | Variable Name  | Type         | Notes                                   |

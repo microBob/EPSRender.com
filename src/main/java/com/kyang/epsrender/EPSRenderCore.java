@@ -1,7 +1,7 @@
 package com.kyang.epsrender;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.kyang.epsrender.Enums.JobStatus;
 import com.kyang.epsrender.Enums.MessageType;
 import com.kyang.epsrender.Enums.NodeStatus;
 import com.kyang.epsrender.Enums.ProjectType;
@@ -17,24 +17,24 @@ public class EPSRenderCore {
 
     // Global vars
     private static final Meta serverMeta = new Meta();
+    private static final ObjectMapper mapper = new ObjectMapper();
 
     public static void main(String[] args) {
         Javalin app = Javalin.create(config -> config.addStaticFiles("/public")).start(7000);
-        ObjectMapper mapper = new ObjectMapper();
 
         app.get("/test", ctx -> ctx.result("Test again"));
 
 
         // SECTION: demo items
 //        serverMeta.addServerNode(new Node("Tester 1", "kjasdhf9ia768927huisdaf9", 3));
-        BlenderProjectInfo blenderInfo = new BlenderProjectInfo(0, 10, false);
+        BlenderProjectInfo blenderInfo = new BlenderProjectInfo(0, 10);
         blenderInfo.setFramesCompleted(5);
         JobRequest right_here = new JobRequest("kyang@eastsideprep.org", ProjectType.BlenderCycles, "Right_Here", blenderInfo);
-        right_here.setJobStatus(JobStatus.Rendering);
-        serverMeta.addToJobQueue(right_here);
-        JobRequest another = new JobRequest("kyang@eastsideprep.org", ProjectType.BlenderCycles, "another", blenderInfo);
-        another.setJobStatus(JobStatus.Queued);
-        serverMeta.addToJobQueue(another);
+//        right_here.setJobStatus(JobStatus.Rendering);
+        serverMeta.addToVerifyingQueue(right_here);
+//        JobRequest another = new JobRequest("kyang@eastsideprep.org", ProjectType.BlenderCycles, "another", blenderInfo);
+//        another.setJobStatus(JobStatus.Queued);
+//        serverMeta.addToJobQueue(another);
 
 
         // SECTION: Open communication
@@ -42,9 +42,8 @@ public class EPSRenderCore {
             ws.onConnect(ctx -> {
                 System.out.println("[WS Connection]: " + ctx.getSessionId());
 
-                // create new blank node with ctx
-                Node unknownNode = new Node(ctx.getSessionId());
-                serverMeta.addServerNode(unknownNode);
+                // create new ctx hash with ctx id
+                serverMeta.addToCtxIdHash(ctx.getSessionId(), ctx);
 
                 // create blank handshake and send ID
                 Message handshake = new Message(MessageType.NewNodeHandshake, null);
@@ -71,22 +70,19 @@ public class EPSRenderCore {
                     try {
                         NodeHandshakeInfo handshakeInfo = mapper.readValue(ctx.message(), NodeHandshakeInfo.class);
 
-                        // fill in rest of node handshake
-                        Node newNode = serverMeta.getServerNodeWithID(handshakeInfo.getCtxSessionID());
-
-                        // check if this node is necro (by node name)
                         Node preExisting = serverMeta.getServerNodeWithName(handshakeInfo.getNodeName());
                         if (preExisting != null) {
                             System.out.println("[Returning Node]: " + preExisting.getNodeName());
-                            preExisting.setCtxSessionID(newNode.getCtxSessionID());
+                            serverMeta.getCtxIdHash().remove(preExisting.getCtxSessionID());
+                            preExisting.setCtxSessionID(handshakeInfo.getCtxSessionID());
                             preExisting.setNodeStatus(NodeStatus.Ready);
-                            // remove the temp node setup from handshake
-                            serverMeta.removeServerNode(newNode);
-                        } else { // add it to the server as new if it is new
-                            newNode.setNodeName(handshakeInfo.getNodeName());
-                            newNode.setPowerIndex(handshakeInfo.getPowerIndex());
+                        } else {
+                            Node newNode = new Node(handshakeInfo.getNodeName(), handshakeInfo.getCtxSessionID(), handshakeInfo.getPowerIndex());
+                            serverMeta.addServerNode(newNode);
                             System.out.println("[New Node]: " + newNode.getNodeName() + "!");
                         }
+
+                        InitNextJob();
                     } catch (Error error) { // now we actually have a problem
                         System.out.println("[WS Message Error]: " + error.getMessage());
                     }
@@ -164,18 +160,26 @@ public class EPSRenderCore {
             int projectTypeInt = Integer.parseInt(Objects.requireNonNull(ctx.queryParam("projectType")));
             String projectFolderName = ctx.queryParam("projectFolderName");
 
+            BlenderProjectInfo blenderProjectInfo = null;
             if (projectTypeInt > 1) {
                 boolean blenderUseAllFrames = Boolean.parseBoolean(ctx.queryParam("blenderUseAll"));
                 if (!blenderUseAllFrames) {
                     int blenderStartFrame = Integer.parseInt(Objects.requireNonNull(ctx.queryParam("blenderStartFrame")));
                     int blenderEndFrame = Integer.parseInt(Objects.requireNonNull(ctx.queryParam("blenderEndFrame")));
 
+                    blenderProjectInfo = new BlenderProjectInfo(blenderStartFrame, blenderEndFrame);
+                } else {
+                    blenderProjectInfo = new BlenderProjectInfo(true);
                 }
             }
 
-            System.out.println("[Debug]: JobQueue count: " + serverMeta.getJobQueue().size());
-            System.out.println("[Debug]: ActionQueue count: " + serverMeta.getVerifyingQueue().size());
-            System.out.println("[Debug]: BlenderJobs count: " + serverMeta.getBlenderQueue().size());
+            JobRequest newJobRequest = new JobRequest(userEmail, ProjectType.values()[projectTypeInt], projectFolderName, blenderProjectInfo);
+
+            serverMeta.addToVerifyingQueue(newJobRequest);
+
+            InitNextJob();
+
+            System.out.println("[Sent Job to verification]: " + newJobRequest.getProjectFolderName());
         });
         // SECTION ^: Adding a new Job
 
@@ -191,6 +195,18 @@ public class EPSRenderCore {
         // SECTION ^: Server Status
 
     }
+
+    // SECTION: Internal methods
+    private static void InitNextJob() throws JsonProcessingException {
+        Node readyServerNode = serverMeta.getReadyServerNode();
+        if (readyServerNode != null) {
+            Message jobMsg = readyServerNode.getNextJob();
+            String jsonMsg = mapper.writeValueAsString(jobMsg);
+
+            serverMeta.getCtxIdHash().get(readyServerNode.getCtxSessionID()).send(jsonMsg);
+        }
+    }
+    // SECTION ^: Internal methods
 
     // SECTION: Session management
     private static void registerUser(Context ctx, String userEmail) {

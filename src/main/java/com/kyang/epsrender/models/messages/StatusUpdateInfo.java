@@ -55,13 +55,7 @@ public class StatusUpdateInfo {
             }
         }
 
-        // sort nodes based on comparator
-        ArrayList<Node> nodesSorted = new ArrayList<>(nodes);
-        if (nodesSorted.size() > 1) {
-            nodesSorted.sort(new NodeSortingComparator());
-        }
-
-        for (Node n : nodesSorted) {
+        for (Node n : nodes) {
             String row = "<tr><td>";
             row += n.getNodeName();
             row += "</td><td class=\"";

@@ -7,6 +7,7 @@ $(function () {
     updateLoginStatus();
     updateStatusBtn();
 })
+setInterval(updateStatusBtn, 60000);
 
 
 // SECTION: Login with EPS Auth

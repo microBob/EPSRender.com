@@ -1,10 +1,14 @@
 package com.kyang.epsrender.models.server;
 
 import com.kyang.epsrender.EPSRenderCore;
+import com.kyang.epsrender.Enums.MessageType;
 import com.kyang.epsrender.Enums.NodeStatus;
 import com.kyang.epsrender.Enums.PowerIndex;
+import com.kyang.epsrender.Enums.ProjectType;
 import com.kyang.epsrender.models.messages.JobRequest;
+import com.kyang.epsrender.models.messages.Message;
 import com.kyang.epsrender.models.server.Meta;
+import io.javalin.websocket.WsContext;
 
 public class Node {
     // SECTION: Properties
@@ -16,10 +20,10 @@ public class Node {
 
 
     // SECTION: Constructors
-    public Node(String nodeName, String ctxSessionID, int powerIndex) {
+    public Node(String nodeName, String ctxSessionID, PowerIndex powerIndex) {
         this.nodeName = nodeName;
         this.ctxSessionID = ctxSessionID;
-        this.powerIndex = PowerIndex.values()[powerIndex];
+        this.powerIndex = powerIndex;
     }
 
     public Node(String ctxSessionID) {
@@ -28,10 +32,28 @@ public class Node {
 
 
     // SECTION: Internal functions
-    public void getNextJob() {
+    public Message getNextJob() {
         Meta serverMeta = EPSRenderCore.getServerMeta();
 
-        // TODO: pop next job from action and handle get from blender if nothing in action
+        // Check Verify queue
+        JobRequest jobFromVerifyingQueue = serverMeta.getJobFromVerifyingQueue();
+        if (jobFromVerifyingQueue != null) {
+            System.out.println("[Node " + nodeName + "]: Verifying job " + jobFromVerifyingQueue.getProjectFolderName());
+
+            // set this as current job and set rendering
+            currentJob = jobFromVerifyingQueue;
+            nodeStatus = NodeStatus.Rendering;
+
+            ProjectType projectType = jobFromVerifyingQueue.getProjectType();
+            return new Message(projectType.equals(ProjectType.PremierePro) ? MessageType.VerifyPremiere :
+                    projectType.equals(ProjectType.AfterEffects) ? MessageType.VerifyAE : MessageType.VerifyBlender,
+                    jobFromVerifyingQueue);
+        }
+
+        // Check Job queue
+
+        // No next job
+        return null;
     }
 
 
