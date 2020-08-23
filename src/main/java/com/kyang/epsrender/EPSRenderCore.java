@@ -27,14 +27,14 @@ public class EPSRenderCore {
 
         // SECTION: demo items
 //        serverMeta.addServerNode(new Node("Tester 1", "kjasdhf9ia768927huisdaf9", 3));
-        BlenderProjectInfo blenderInfo = new BlenderProjectInfo(0, 10, false);
-        blenderInfo.setFramesCompleted(5);
-        JobRequest right_here = new JobRequest("kyang@eastsideprep.org", ProjectType.BlenderCycles, "Right_Here", blenderInfo);
-        right_here.setJobStatus(JobStatus.Rendering);
-        serverMeta.addToJobQueue(right_here);
-        JobRequest another = new JobRequest("kyang@eastsideprep.org", ProjectType.BlenderCycles, "another", blenderInfo);
-        another.setJobStatus(JobStatus.Queued);
-        serverMeta.addToJobQueue(another);
+//        BlenderProjectInfo blenderInfo = new BlenderProjectInfo(0, 10);
+//        blenderInfo.setFramesCompleted(5);
+//        JobRequest right_here = new JobRequest("kyang@eastsideprep.org", ProjectType.BlenderCycles, "Right_Here", blenderInfo);
+//        right_here.setJobStatus(JobStatus.Rendering);
+//        serverMeta.addToJobQueue(right_here);
+//        JobRequest another = new JobRequest("kyang@eastsideprep.org", ProjectType.BlenderCycles, "another", blenderInfo);
+//        another.setJobStatus(JobStatus.Queued);
+//        serverMeta.addToJobQueue(another);
 
 
         // SECTION: Open communication
@@ -164,18 +164,24 @@ public class EPSRenderCore {
             int projectTypeInt = Integer.parseInt(Objects.requireNonNull(ctx.queryParam("projectType")));
             String projectFolderName = ctx.queryParam("projectFolderName");
 
+            BlenderProjectInfo blenderProjectInfo = null;
             if (projectTypeInt > 1) {
                 boolean blenderUseAllFrames = Boolean.parseBoolean(ctx.queryParam("blenderUseAll"));
                 if (!blenderUseAllFrames) {
                     int blenderStartFrame = Integer.parseInt(Objects.requireNonNull(ctx.queryParam("blenderStartFrame")));
                     int blenderEndFrame = Integer.parseInt(Objects.requireNonNull(ctx.queryParam("blenderEndFrame")));
 
+                    blenderProjectInfo = new BlenderProjectInfo(blenderStartFrame, blenderEndFrame);
+                } else {
+                    blenderProjectInfo = new BlenderProjectInfo(true);
                 }
             }
 
-            System.out.println("[Debug]: JobQueue count: " + serverMeta.getJobQueue().size());
-            System.out.println("[Debug]: ActionQueue count: " + serverMeta.getVerifyingQueue().size());
-            System.out.println("[Debug]: BlenderJobs count: " + serverMeta.getBlenderQueue().size());
+            JobRequest newJobRequest = new JobRequest(userEmail, ProjectType.values()[projectTypeInt], projectFolderName, blenderProjectInfo);
+
+            serverMeta.addToVerifyingQueue(newJobRequest);
+
+            System.out.println("[Sent Job to verification]: " + newJobRequest.getProjectFolderName());
         });
         // SECTION ^: Adding a new Job
 

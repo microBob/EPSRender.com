@@ -12,9 +12,12 @@ public class BlenderProjectInfo {
 
 
     // SECTION: Constructors
-    public BlenderProjectInfo(int start, int end, boolean useAllFrames) {
+    public BlenderProjectInfo(int start, int end) {
         this.startFrame = start;
         this.endFrame = end;
+    }
+
+    public BlenderProjectInfo(boolean useAllFrames) {
         this.useAllFrames = useAllFrames;
     }
 

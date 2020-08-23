@@ -39,6 +39,10 @@ public class Meta {
         this.verifyingQueue = verifyingQueue;
     }
 
+    public void addToVerifyingQueue(JobRequest jobRequest) {
+        this.verifyingQueue.add(jobRequest);
+    }
+
     public ArrayList<JobRequest> getBlenderQueue() {
         return blenderQueue;
     }
