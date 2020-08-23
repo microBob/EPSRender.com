@@ -5,6 +5,7 @@ let userName = "";
 // SECTION: page init
 $(function () {
     updateLoginStatus();
+    updateStatusBtn();
 })
 
 
@@ -189,7 +190,7 @@ $("#new-job-request-form").submit(function () {
             request({
                 url: "/add_new_job?projectType=" + projectType + "&blenderUseAll=false&blenderStartFrame=" + blenderStartFrame + "&blenderEndFrame=" + blenderEndFrame + "&projectFolderName=" + projectFolderName,
                 verb: "PUT"
-            }).then(data => {
+            }).then(() => {
                 console.log("Add job successful!");
             }).catch(onerror => {
                 console.log("Add job Error: " + onerror);
@@ -198,7 +199,7 @@ $("#new-job-request-form").submit(function () {
             request({
                 url: "/add_new_job?projectType=" + projectType + "&blenderUseAll=true&projectFolderName=" + projectFolderName,
                 verb: "PUT"
-            }).then(data => {
+            }).then(() => {
                 console.log("Add job successful!");
             }).catch(onerror => {
                 console.log("Add job Error: " + onerror);
@@ -208,7 +209,7 @@ $("#new-job-request-form").submit(function () {
         request({
             url: "/add_new_job?projectType=" + projectType + "&projectFolderName=" + projectFolderName,
             verb: "PUT"
-        }).then(data => {
+        }).then(() => {
             console.log("Add job successful!");
         }).catch(onerror => {
             console.log("Add job Error: " + onerror);

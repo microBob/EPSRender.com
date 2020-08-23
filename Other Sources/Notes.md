@@ -33,7 +33,7 @@
 	  	* **`1`** = After Effects
 	  	* **`2`** = Cycles
 	  	* **`3`** = EEVEE
-	  	* 3/4 (blender) will show frame selection settings
+	  	* 2/3 (blender) will show frame selection settings
 	  * **`blender-render-settings`**
 	  	* div with blender frame selections settings
 	  	* number input: **`start-frame-input`**
@@ -41,44 +41,53 @@
 	  	* check-box: **`use-all-frames-check-box`**
 	  		* disable above two when checked
 	  		* registers all frames to be rendered
-	  * text input: **`project-folder-name-input`**
+	  * **`project-folder-name-input`**
 	  	* project folder name
 	  	* needs to be greater than 1 character
 	  * **`warning-error-p`**
 	  	* show default alert and any form validation errors
+	  	
+	  	   * it is the `<span>` that contains the error message, not the whole `<p>` itself
+	  
+	* form submit button: **`job-submit-btn`**
 	
-  	* is the `<span>` that contains the error message, not the whole `<p>` itself
-	  * form submit button: **`job-submit-btn`**
-
 	* **`job-que-table`**
-
-		* displayed the job queue
 	
-		* | User | Type | Time Added | Status                       |
-			| ---- | ---- | ---------- | ---------------------------- |
-			|      |      |            | **`x`**/**`total`** rendered |
-		|      |      |            | Rendering                    |
-			|      |      |            | Place **`#`** in Queue       |
-
+	  * displayed the job queue
+	
+	  * | User | Type | Time Added | Status                       |
+	  	| ---- | ---- | ---------- | ---------------------------- |
+	  	|      |      |            | **`x`**/**`total`** rendered |
+	  |      |      |            | Verifying                    |
+	  	|      |      |            | Place **`#`** in Queue       |
+	  	
+	  * CSS colors
+	
+	    * rendering: `text-primary`
+	    * Verifying: `text-warning`
+	    * Queued: `text-info`
+	
 	* **`server-status-table`**
-
-		* displayed the nodes and their states
-
-		* sorted: `online` -> `rendering` -> `offline`
 	
-			* | Node | Status    |
-				| ---- | --------- |
-				|      | Offline   |
-			|      | Ready     |
-				|      | Rendering |
-
+	  * displayed the nodes and their states
+	
+	  * sorted `ready -> rendering -> offline`
+	
+	  	* | Node | Status    |
+	  		| ---- | --------- |
+	  		|      | Offline   |
+	  	|      | Ready     |
+	  		|      | Rendering |
+	  	
+	  * CSS colors
+	
+	    * Offline: `text-danger`
+	    * Ready: `text-success`
+	    * Rendering: `text-warning`
+	
 	* **`update-server-info-btn`**
 	
-		* pull updates from server to repopulate the tables
-
-### Tables example
-
-![table example](/home/microbobu/Documents/EPS Render Server/EPRender.com/Other Sources/exampleServerInfo.png)
+	  * pull updates from server to repopulate the tables
 
 ## Useful CSS class definitions
 
@@ -102,7 +111,7 @@
 | **`/login`**             | redirects to EPSAuth                                         | "Running login"<br />redirect to completion route            |
 | **`/complete_login`**    | return redirect from `/login`. <br />Attaches the user to a session attribute | redirect to `/`                                              |
 | **`/update_login_stat`** | checks for current logged in user                            | session user *name* <br />"!invalid!" if invalid for some reason<br />"" if null |
-|                          |                                                              |                                                              |
+| **`/update_stat`**       | updates displayed info on Job Que and Server Status          | `ServerUpdateInfo` JSON                                      |
 |                          |                                                              |                                                              |
 |                          |                                                              |                                                              |
 
@@ -116,110 +125,134 @@
 
 ## Server Enums (`.Enums.`)
 
-| Name                 | Enum Name            | Values                                                       | Notes                                                 |
-| -------------------- | -------------------- | ------------------------------------------------------------ | ----------------------------------------------------- |
-| Project Type         | `ProjectType`        | `0 = PremierePro`<br />`1 = AfterEffects`<br />`2 = BlenderCycles`<br />`3 = BlenderEEVEE` |                                                       |
-| Job Status           | `JobStatus`          | `0 = Unassigned`<br />`1 = Queued`<br />`2 = Rendering`      |                                                       |
-| Node Power Index     | `PowerIndex`         | `0 = Ultra`<br />`1 = High`<br />`2 = Mid`<br />`3 = Low`    | Tower 1<br />VR 1<br />Corsair 1, 2<br />DELL 1, 2, 3 |
-| Node Status          | `NodeStatus`         | `0 = Ready`<br />`1 = Rendering`<br />`2 = Offline`          |                                                       |
-| Node Response Status | `NodeResponseStatus` | `0 = Accept`<br />`1 = Completed`<br />`2 = Reject`          |                                                       |
+| Name             | Enum Name     | Values                                                       | Notes                                                        |
+| ---------------- | ------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| Project Type     | `ProjectType` | `0 = PremierePro`<br />`1 = AfterEffects`<br />`2 = BlenderCycles`<br />`3 = BlenderEEVEE` |                                                              |
+| Job Status       | `JobStatus`   | `0 = Verifying`<br />`1 = Queued`<br />`2 = Rendering`       |                                                              |
+| Node Power Index | `PowerIndex`  | `0 = Ultra`<br />`1 = High`<br />`2 = Mid`<br />`3 = Low`    | Tower 1<br />VR 1<br />Corsair 1, 2<br />DELL 1, 2, 3        |
+| Node Status      | `NodeStatus`  | `0 = Ready`<br />`1 = Rendering`<br />`2 = Offline`          |                                                              |
+| Message Type     | `MessageType` | `0 = VerifyBlender`<br />`1 = VerifyPremiere`<br />`2 = VerifyAE`<br />`3 = RenderBlender`<br />`4 = RenderME`<br />`5 = NewNodeHandshake` | Verify primarily is used to identify if a file can be found<br />Blender verify includes getting frames<br /><br />messages received from node means "done"<br /><br /> |
 
 ## Models
 
 ### Server Meta (`.models.Meta`)
 
-| Property          | Variable Name | Type               | Notes                                                        |
-| ----------------- | ------------- | ------------------ | ------------------------------------------------------------ |
-| Job Queue         | `jobQueue`    | `List<JobRequest>` | holds all current requests their statuses                    |
-| Action Queue      | `actionQueue` | `List<JobRequest>` | job requests that are immediately actionable.<br />pulled from and added to the render que when there are availabilities |
-| Blender Job Queue | `blenderJobs` | `List<JobRequest>` | hold the frames of the Blender jobs<br />pull from here when adding frames for (distributed) rendering |
-| Server nodes      | `serverNodes` | `List<Node>`       |                                                              |
+| Property        | Variable Name    | Type                    | Notes                                       |
+| --------------- | ---------------- | ----------------------- | ------------------------------------------- |
+| Job Queue       | `jobQueue`       | `ArrayList<JobRequest>` | holds all current requests their statuses   |
+| Verifying Queue | `verifyingQueue` | `ArrayList<JobRequest>` | copy of an unverified request in `jobQueue` |
+| Blender Queue   | `blenderQueue`   | `ArrayList<JobRequest>` | holds verified blender frames               |
+| Server nodes    | `serverNodes`    | `ArrayList<Node>`       |                                             |
+### Server Node (`.models.Node`)
+
+| Property           | Variable Name  | Type         | Notes                                   |
+| ------------------ | -------------- | ------------ | --------------------------------------- |
+| Node name          | `nodeName`     | `String`     | Used to display<br />must be unique     |
+| Context session ID | `ctxSessionID` | `String`     | acquired when first connected to Server |
+| Power Index        | `powerIndex`   | `PowerIndex` |                                         |
+| Node status        | `nodeStatus`   | `NodeStatus` |                                         |
+| Working on Job     | `currentJob`   | `JobRequest` |                                         |
+
+### Message (`.models.Message`)
+
+| Properties       | Variable Name | Type          | Notes                                      |
+| ---------------- | ------------- | ------------- | ------------------------------------------ |
+| Message Type     | `type`        | `MessageType` |                                            |
+| Job Request Data | `jobRequest`  | `JobRequest`  | use type to determine what to do with data |
 
 ### Job Request (`.models.JobRequest`)
 
-| Property                                               | Variable Name              | Type          | Notes                                                        |
-| ------------------------------------------------------ | -------------------------- | ------------- | ------------------------------------------------------------ |
-| *<u>{Input parameter}</u>*<br />User's email           | `useremail`                | `String`      | Identity of sender                                           |
-| *<u>{Input parameter}</u>*<br />Project Type           | `projectType`              | `ProjectType` |                                                              |
-| *<u>{Input parameter}</u>*<br />Blender Use All Frames | `blenderUseAll`            | `boolean`     | `true` = use all frames<br />`false` = use start and end frames |
-| *<u>{Input parameter}</u>*<br />Blender Start Frame    | `blenderStartFrame`        | `int`         | (`>= 1`)<br />only read if `blenderUseAll = false`.          |
-| *<u>{Input parameter}</u>*<br />Blender End Frame      | `blenderEndFrame`          | `int`         | (`>= blenderStartFrame`)<br />only read if `blenderUseAll = false` |
-| Project File                                           | `projectFile`              | String        | URL to specific project file<br />generated after received   |
-| *<u>{Input parameter}</u>*<br />Project Location       | `projectLocation`          | `String`      | URL to location on student drive.<br />must include: `\\drives\Students\`<br />generated from `projectFile` |
-| Job status                                             | `status`                   | `JobStatus`   |                                                              |
-| Blender frames rendered                                | `blenderFramesRendered`    | `int`         | (`bSF <= n <= bEF`)<br />"`n` / total frames"<br />used as rendering status message |
-| Blender current frame                                  | `blenderCurrentFrame`      | `int`         | the frame this request represents                            |
-| Blender distributed amount                             | `blenderDistributedAmount` | `int`         | number of nodes working on this request                      |
+| Property                                                     | Variable Name       | Type                 | Notes                                |
+| ------------------------------------------------------------ | ------------------- | -------------------- | ------------------------------------ |
+| *<u>{Input parameter}</u>*<br />User's email                 | `useremail`         | `String`             | Identity of sender                   |
+| *<u>{Input parameter}</u>*<br />Project Type                 | `projectType`       | `ProjectType`        |                                      |
+| <u>*{Input parameter}*</u><br />Project Folder Name          | `projectFolderName` | `String`             |                                      |
+| <u>*{Input parameter}*</u><br />Blender project rendering info | `blenderInfo`       | `BlenderProjectInfo` | combination data for blender renders |
+| Verified                                                     | `verified`          | `boolean`            | Only verified requests can be queued |
+| Verification Error Msg                                       | `errorMsg`          | `String`             | built by node                        |
+| Time Added                                                   | `timeAdded`         | `String`             | Java Date converted to string        |
+| Job Status                                                   | `jobStatus`         | `JobStatus`          |                                      |
 
-### Server Node (`.models.Node`)
+### Blender Project Info (`.models.BlenderProjectInfo`)
 
-| Property       | Variable Name | Type         | Notes                               |
-| -------------- | ------------- | ------------ | ----------------------------------- |
-| Node name      | `nodeName`    | `String`     | Used to display<br />must be unique |
-| IP Address     | `ipAddress`   | `String`     | unique identifier                   |
-| Power Index    | `powerIndex`  | `PowerIndex` |                                     |
-| Node status    | `nodeStatus`  | `NodeStatus` |                                     |
-| Working on Job | `currentJob`  | `JobRequest` |                                     |
+| Property            | Variable Name     | Type      | Notes                                         |
+| ------------------- | ----------------- | --------- | --------------------------------------------- |
+| Start Frame         | `startFrame`      | `int`     |                                               |
+| End Frame           | `endFrame`        | `int`     |                                               |
+| Use all frames?     | `useAllFrames`    | `boolean` |                                               |
+| Project Filename    | `fileName`        | `String`  | acquired after verification                   |
+| Frame Number        | `frameNumber`     | `int`     | Frame number this job represents<br />        |
+| Frames completed    | `framesCompleted` | `int`     | `= (endFrame - startFrame) - `frames in queue |
+| Number of renderers | `renderers`       | `int`     | number of nodes working on this               |
 
-### Node Response (`.models.NodeResponse`)
+### Server Update Info (`.models.ServerUpdateInfo`)
 
-| Property     | Variable Name  | Type                 | Notes                              |
-| ------------ | -------------- | -------------------- | ---------------------------------- |
-| Node name    | `nodeName`     | `String`             | identifier                         |
-| Attached Job | `attachedJob`  | `jobRequest`         | job that this response pertains to |
-| Status       | `reportStatus` | `NodeResponseStatus` |                                    |
+| Property      | Variable Name | Type                    | Notes                                    |
+| ------------- | ------------- | ----------------------- | ---------------------------------------- |
+| Job Queue     | `jobQueue`    | `ArrayList<JobRequest>` | merge of `jobQueue` and `verifyingQueue` |
+| Server Status | `serverStat`  | `ArrayList<Node>`       | sorted `ready -> rendering -> offline`   |
 
-## Serving logic
+### Node handshake Info (`.models.NodeHandshakeInfo`)
 
-### Get new `JobRequest` (from Front-end)
+| Property    | Variable Name | Type         | Notes |
+| ----------- | ------------- | ------------ | ----- |
+| Node name   | `nodeName`    | `String`     |       |
+| Power index | `powerIndex`  | `PowerIndex` |       |
 
-1. add to `Meta.jobQueue`
-2. If Adobe, immediately add to `Meta.actionQueue`
-3. If Blender
-	1. if use all frames
-		1. immediately create and add a `jobRequest` for frame `-1` to `meta.actionQueue`
-			1. use `-1` to signal that this needs to be checked
-		2. wait for response before creating other frames
-	2. if given explicit frames
-		1. create `jobRequest` class for each frame and immediately add first to `Meta.actionQueue`
-4. Add other blender frames to `Meta.blenderJobs`
 
-### Add Jobs to RabbitMQ's `render-jobs`
 
-1. All assumes `Meta.serverNodes` has at least one that is ready
-2. If `Meta.blenderJobs.count != 0`
-	1. look for in progress blender jobs
-	2. if `JobRequest.blenderDistributedAmount > 0 && Meta.actionQueue.count != 0`: pop next `Meta.actionQueue` item into `render-jobs`
-	3. if `JobRequest.blenderDistributedAmount == 0 && Meta.actionQueue.count == 0`: pop next blender frame from this request into `render-jobs` as <u>priority</u>
-3. If nothing happened from #2: pop the top job from `Meta.actionQueue` into RabbitMQ's `render-jobs`
+## Server logic
 
-### On node register taking a job (from RabbitMQ)
+### Get new Job Request (from Front-end)
 
-  1. set node `currentJob` to the `attachedJob`
-  2. set `nodeStatus` to rendering
-  3. set related `jobRequest` in the queue listing to rendering
-				   1. "rendering"
-	   2. "n / total <u>rendered</u>"
-     4. If `jobRequest` was the first frame in a blender render all
-             1. read in `blenderStartFrame` and `blenderEndFrame`
-             2. create extra frames as detailed in getting new `JobRequest`
+1. parse data into a `JobRequest`
+	1. set `timeAdded` to format `MM/dd/yyyy hh:mm:ss aa`
+2. copy `JobRequest` to `verifyingQueue`
 
-### On node register completed job (from RabbitMQ)
+### If a node is Ready
 
-  1. set node `currentJob` to `null`
-  2. set `serverNodes.<requested node>.nodeStatus` to ready
-  3. set related `jobRequest` in the queue listing
-   4. remove if Adobe and email
-   5. If Blender: increment/set "n" in the rendered message.
-	     		1. if all rendered, remove from listing and email
-6. run **Add Job**
+1. pull the oldest item from `verifyingQueue` and send to node to verify
+	1. mark node rendering with job
+2. check `jobQueue`
+	1. check `0` index for necro jobs (jobs from dead nodes)
+	2. if there is a rendering blender job with 0 working nodes, send next frame of this project from `blenderQueue` to node
+		1. mark node rendering with job
+	3. pick the next ME job
+		1. mark node rendering with job
+	4. pick the next frame in the oldest blender job
+		1. mark node rendering with job
 
-### On node register rejected job (from RabbitMQ)
+### Received verify (node completed verification)
 
-  1. if Adobe: delete and email
-  2. if Blender: find all and delete, then email
-  3. set `serverNodes.<requested node>.nodeStatus` to ready
-  4. run **Add Job** 
+1. if bad
+	1. send email to user and copy `errorMsg`
+	2. remove `JobRequest` from queues
+2. if good
+	1. if blender
+		1. generate other frames (`JobRequests`) based on new data into `blenderQueue`
+3. set `JobRequest` `jobStatus` to queued
+4. check if a node is ready to render
+
+### Received render (node completed render)
+
+1. mark node as ready
+2. if blender
+	1. `++` to `framesCompleted`
+	2. if `framesCompleted = (endFrame - startFrame + 1)`
+		1. send email to user on completion
+		2. remove `JobRequest` from queues
+	3. else, remove frame from `blenderQueue`
+3. if ME
+	1. send email to user on completion
+	2. remove `JobRequest` from queues
+
+### New node handshake (when a new node connects)
+
+1. create a new (empty) node with `ctxSessionID`
+2. send `NewNodeIntro` message to node
+3. parse response and fill out rest of `Node`
+
+# NodeJS (Client)
 
 ## Special Items
 
@@ -228,19 +261,3 @@
 bash command: `blender -b {blender file to render} --python {path/to/}getFrames.py | grep -w 'EPRenderInterestedFrames:'`
 
 * returns `EPRenderInterestedFrames: start,end`
-
-# Python (Client)
-
-## Working Logic
-
-1. 
-
-# RabbitMQ (Server)
-
-## Queues
-
-| Name            | Technical Name    | Notes                                                        |
-| --------------- | ----------------- | ------------------------------------------------------------ |
-| Render Jobs     | `render-jobs`     | Any immediately render-able jobs used to deliver jobs to any open/available nodes |
-| Back from Nodes | `back-from-nodes` | used to send messages from nodes back to the server (like when a job is completed) |
-
