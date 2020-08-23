@@ -24,7 +24,6 @@ public class Meta {
     }
 
     public void addToJobQueue(JobRequest jobRequest) {
-        jobRequest.setJobStatus(JobStatus.Queued);
         this.jobQueue.add(jobRequest);
     }
 
@@ -57,13 +56,11 @@ public class Meta {
     }
 
     public Node getServerNodeWithID(String ctxID) {
-        for (Node n : serverNodes) {
-            if (n.getCtxSessionID().equals(ctxID)) {
-                return n;
-            }
-        }
+        return serverNodes.stream().filter(n -> ctxID.equals(n.getCtxSessionID())).findFirst().orElse(null);
+    }
 
-        return null;
+    public Node getServerNodeWithName(String nodeName) {
+        return serverNodes.stream().filter(n -> nodeName.equals(n.getNodeName())).findFirst().orElse(null);
     }
 
     public void setServerNodes(ArrayList<Node> serverNodes) {

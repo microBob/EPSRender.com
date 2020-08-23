@@ -36,6 +36,15 @@ public class JobRequest {
         return userEmail;
     }
 
+    public String getUserName() {
+        int atIndex = userEmail.indexOf("@");
+        if (atIndex > 0) {
+            return userEmail.substring(0, atIndex);
+        } else {
+            return userEmail;
+        }
+    }
+
     public void setUserEmail(String userEmail) {
         this.userEmail = userEmail;
     }

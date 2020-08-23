@@ -1,12 +1,11 @@
 package com.kyang.epsrender;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kyang.epsrender.Enums.JobStatus;
 import com.kyang.epsrender.Enums.MessageType;
 import com.kyang.epsrender.Enums.NodeStatus;
-import com.kyang.epsrender.models.messages.BlenderProjectInfo;
-import com.kyang.epsrender.models.messages.Message;
-import com.kyang.epsrender.models.messages.NodeHandshakeInfo;
-import com.kyang.epsrender.models.messages.ServerUpdateInfo;
+import com.kyang.epsrender.Enums.ProjectType;
+import com.kyang.epsrender.models.messages.*;
 import com.kyang.epsrender.models.server.Meta;
 import com.kyang.epsrender.models.server.Node;
 import io.javalin.Javalin;
@@ -26,9 +25,16 @@ public class EPSRenderCore {
         app.get("/test", ctx -> ctx.result("Test again"));
 
 
-//        // SECTION: Register nodes
-//        //noinspection SpellCheckingInspection
+        // SECTION: demo items
 //        serverMeta.addServerNode(new Node("Tester 1", "kjasdhf9ia768927huisdaf9", 3));
+        BlenderProjectInfo blenderInfo = new BlenderProjectInfo(0, 10, false);
+        blenderInfo.setFramesCompleted(5);
+        JobRequest right_here = new JobRequest("kyang@eastsideprep.org", ProjectType.BlenderCycles, "Right_Here", blenderInfo);
+        right_here.setJobStatus(JobStatus.Rendering);
+        serverMeta.addToJobQueue(right_here);
+        JobRequest another = new JobRequest("kyang@eastsideprep.org", ProjectType.BlenderCycles, "another", blenderInfo);
+        another.setJobStatus(JobStatus.Queued);
+        serverMeta.addToJobQueue(another);
 
 
         // SECTION: Open communication
@@ -67,10 +73,20 @@ public class EPSRenderCore {
 
                         // fill in rest of node handshake
                         Node newNode = serverMeta.getServerNodeWithID(handshakeInfo.getCtxSessionID());
-                        newNode.setNodeName(handshakeInfo.getNodeName());
-                        newNode.setPowerIndex(handshakeInfo.getPowerIndex());
 
-                        System.out.println("[New Node]: " + newNode.getNodeName() + "!");
+                        // check if this node is necro (by node name)
+                        Node preExisting = serverMeta.getServerNodeWithName(handshakeInfo.getNodeName());
+                        if (preExisting != null) {
+                            System.out.println("[Returning Node]: " + preExisting.getNodeName());
+                            preExisting.setCtxSessionID(newNode.getCtxSessionID());
+                            preExisting.setNodeStatus(NodeStatus.Ready);
+                            // remove the temp node setup from handshake
+                            serverMeta.removeServerNode(newNode);
+                        } else { // add it to the server as new if it is new
+                            newNode.setNodeName(handshakeInfo.getNodeName());
+                            newNode.setPowerIndex(handshakeInfo.getPowerIndex());
+                            System.out.println("[New Node]: " + newNode.getNodeName() + "!");
+                        }
                     } catch (Error error) { // now we actually have a problem
                         System.out.println("[WS Message Error]: " + error.getMessage());
                     }
@@ -164,11 +180,13 @@ public class EPSRenderCore {
         // SECTION ^: Adding a new Job
 
         // SECTION: Server Status
-        app.get("/update_server_stat", ctx -> {
+        app.get("/update_stat", ctx -> {
+            System.out.println("[Route Requested]: /update_stat");
             // Get info
-            ServerUpdateInfo updateInfo = new ServerUpdateInfo(serverMeta.getJobQueue(), serverMeta.getVerifyingQueue(), serverMeta.getServerNodes());
+            StatusUpdateInfo updateInfo = new StatusUpdateInfo(serverMeta.getJobQueue(), serverMeta.getVerifyingQueue(), serverMeta.getServerNodes());
             // Send it over
-            ctx.result(mapper.writeValueAsString(updateInfo));
+            String resultString = mapper.writeValueAsString(updateInfo);
+            ctx.result(resultString);
         });
         // SECTION ^: Server Status
 

@@ -5,6 +5,7 @@ let userName = "";
 // SECTION: page init
 $(function () {
     updateLoginStatus();
+    updateStatusBtn();
 })
 
 

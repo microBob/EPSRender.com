@@ -58,8 +58,14 @@
 	  * | User | Type | Time Added | Status                       |
 	  	| ---- | ---- | ---------- | ---------------------------- |
 	  	|      |      |            | **`x`**/**`total`** rendered |
-	  |      |      |            | Rendering                    |
+	  |      |      |            | Verifying                    |
 	  	|      |      |            | Place **`#`** in Queue       |
+	  	
+	  * CSS colors
+	
+	    * rendering: `text-primary`
+	    * Verifying: `text-warning`
+	    * Queued: `text-info`
 	
 	* **`server-status-table`**
 	
@@ -72,6 +78,12 @@
 	  		|      | Offline   |
 	  	|      | Ready     |
 	  		|      | Rendering |
+	  	
+	  * CSS colors
+	
+	    * Offline: `text-danger`
+	    * Ready: `text-success`
+	    * Rendering: `text-warning`
 	
 	* **`update-server-info-btn`**
 	
@@ -93,15 +105,15 @@
 
 ## Routes
 
-| Name                      | What it does                                                 | Return                                                       |
-| ------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| **`/test`**               | simple text return test                                      | "Test again"                                                 |
-| **`/login`**              | redirects to EPSAuth                                         | "Running login"<br />redirect to completion route            |
-| **`/complete_login`**     | return redirect from `/login`. <br />Attaches the user to a session attribute | redirect to `/`                                              |
-| **`/update_login_stat`**  | checks for current logged in user                            | session user *name* <br />"!invalid!" if invalid for some reason<br />"" if null |
-| **`/update_server_stat`** | updates displayed info on Job Que and Server Status          | `ServerUpdateInfo` JSON                                      |
-|                           |                                                              |                                                              |
-|                           |                                                              |                                                              |
+| Name                     | What it does                                                 | Return                                                       |
+| ------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| **`/test`**              | simple text return test                                      | "Test again"                                                 |
+| **`/login`**             | redirects to EPSAuth                                         | "Running login"<br />redirect to completion route            |
+| **`/complete_login`**    | return redirect from `/login`. <br />Attaches the user to a session attribute | redirect to `/`                                              |
+| **`/update_login_stat`** | checks for current logged in user                            | session user *name* <br />"!invalid!" if invalid for some reason<br />"" if null |
+| **`/update_stat`**       | updates displayed info on Job Que and Server Status          | `ServerUpdateInfo` JSON                                      |
+|                          |                                                              |                                                              |
+|                          |                                                              |                                                              |
 
 ## Session attributes
 
@@ -226,7 +238,7 @@
 1. mark node as ready
 2. if blender
 	1. `++` to `framesCompleted`
-	2. if `framesCompleted = (endFrame - startFrame)`
+	2. if `framesCompleted = (endFrame - startFrame + 1)`
 		1. send email to user on completion
 		2. remove `JobRequest` from queues
 	3. else, remove frame from `blenderQueue`
