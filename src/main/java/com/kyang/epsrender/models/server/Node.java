@@ -16,10 +16,10 @@ public class Node {
 
 
     // SECTION: Constructors
-    public Node(String nodeName, String ctxSessionID, int powerIndex) {
+    public Node(String nodeName, String ctxSessionID, PowerIndex powerIndex) {
         this.nodeName = nodeName;
         this.ctxSessionID = ctxSessionID;
-        this.powerIndex = PowerIndex.values()[powerIndex];
+        this.powerIndex = powerIndex;
     }
 
     public Node(String ctxSessionID) {

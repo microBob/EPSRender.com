@@ -10,6 +10,7 @@ import com.kyang.epsrender.models.server.Meta;
 import com.kyang.epsrender.models.server.Node;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
+import io.javalin.websocket.WsContext;
 
 import java.util.Objects;
 
@@ -42,9 +43,8 @@ public class EPSRenderCore {
             ws.onConnect(ctx -> {
                 System.out.println("[WS Connection]: " + ctx.getSessionId());
 
-                // create new blank node with ctx
-                Node unknownNode = new Node(ctx.getSessionId());
-                serverMeta.addServerNode(unknownNode);
+                // create new ctx hash with ctx id
+                serverMeta.addToCtxIdHash(ctx.getSessionId(), ctx);
 
                 // create blank handshake and send ID
                 Message handshake = new Message(MessageType.NewNodeHandshake, null);
@@ -71,22 +71,34 @@ public class EPSRenderCore {
                     try {
                         NodeHandshakeInfo handshakeInfo = mapper.readValue(ctx.message(), NodeHandshakeInfo.class);
 
-                        // fill in rest of node handshake
-                        Node newNode = serverMeta.getServerNodeWithID(handshakeInfo.getCtxSessionID());
-
-                        // check if this node is necro (by node name)
                         Node preExisting = serverMeta.getServerNodeWithName(handshakeInfo.getNodeName());
                         if (preExisting != null) {
                             System.out.println("[Returning Node]: " + preExisting.getNodeName());
-                            preExisting.setCtxSessionID(newNode.getCtxSessionID());
+                            serverMeta.getCtxIdHash().remove(preExisting.getCtxSessionID());
+                            preExisting.setCtxSessionID(handshakeInfo.getCtxSessionID());
                             preExisting.setNodeStatus(NodeStatus.Ready);
-                            // remove the temp node setup from handshake
-                            serverMeta.removeServerNode(newNode);
-                        } else { // add it to the server as new if it is new
-                            newNode.setNodeName(handshakeInfo.getNodeName());
-                            newNode.setPowerIndex(handshakeInfo.getPowerIndex());
+                        } else {
+                            Node newNode = new Node(handshakeInfo.getNodeName(), handshakeInfo.getCtxSessionID(), handshakeInfo.getPowerIndex());
+                            serverMeta.addServerNode(newNode);
                             System.out.println("[New Node]: " + newNode.getNodeName() + "!");
                         }
+
+//                        // create new node based on info (could get deleted
+//                        Node newNode = new Node(handshakeInfo.getNodeName(), handshakeInfo.getCtxSessionID(), handshakeInfo.getPowerIndex());
+//
+//                        // check if this node is necro (by node name)
+//                        Node preExisting = serverMeta.getServerNodeWithName(handshakeInfo.getNodeName());
+//                        if (preExisting != null) {
+//                            System.out.println("[Returning Node]: " + preExisting.getNodeName());
+//                            preExisting.setCtxSessionID(newNode.getCtxSessionID());
+//                            preExisting.setNodeStatus(NodeStatus.Ready);
+//                            // remove the temp node setup from handshake
+//                            serverMeta.removeServerNode(newNode);
+//                        } else { // add it to the server as new if it is new
+//                            newNode.setNodeName(handshakeInfo.getNodeName());
+//                            newNode.setPowerIndex(handshakeInfo.getPowerIndex());
+//                            System.out.println("[New Node]: " + newNode.getNodeName() + "!");
+//                        }
                     } catch (Error error) { // now we actually have a problem
                         System.out.println("[WS Message Error]: " + error.getMessage());
                     }

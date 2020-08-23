@@ -3,14 +3,17 @@ package com.kyang.epsrender.models.server;
 import com.kyang.epsrender.Enums.JobStatus;
 import com.kyang.epsrender.Enums.NodeStatus;
 import com.kyang.epsrender.models.messages.JobRequest;
+import io.javalin.websocket.WsContext;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Meta {
     private ArrayList<JobRequest> jobQueue = new ArrayList<>();
     private ArrayList<JobRequest> verifyingQueue = new ArrayList<>();
     private ArrayList<JobRequest> blenderQueue = new ArrayList<>();
     private ArrayList<Node> serverNodes = new ArrayList<>();
+    private HashMap<String, WsContext> ctxIdHash = new HashMap<>();
 
 
     // SECTION: Getters and setters
@@ -77,6 +80,18 @@ public class Meta {
 
     public void removeServerNode(Node serverNode) {
         this.serverNodes.remove(serverNode);
+    }
+
+    public HashMap<String, WsContext> getCtxIdHash() {
+        return ctxIdHash;
+    }
+
+    public void setCtxIdHash(HashMap<String, WsContext> ctxIdHash) {
+        this.ctxIdHash = ctxIdHash;
+    }
+
+    public void addToCtxIdHash(String id, WsContext ctx) {
+        this.ctxIdHash.put(id, ctx);
     }
 
 
