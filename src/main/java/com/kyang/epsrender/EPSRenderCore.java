@@ -37,16 +37,13 @@ public class EPSRenderCore {
         // SECTION: demo items
 //        serverMeta.addServerNode(new Node("Tester 1", "kjasdhf9ia768927huisdaf9", 3));
 //        BlenderProjectInfo blenderInfo = new BlenderProjectInfo(true);
-        BlenderProjectInfo blenderInfo = new BlenderProjectInfo(0, 10);
-        blenderInfo.setFramesCompleted(5);
-        JobRequest right_here = new JobRequest("kyang@eastsideprep.org", ProjectType.BlenderCycles, "Right_Here",
-                blenderInfo);
-//        right_here.setJobStatus(JobStatus.Rendering);
-        serverMeta.addToVerifyingQueue(right_here);
-//        JobRequest another = new JobRequest("kyang@eastsideprep.org", ProjectType.BlenderCycles, "another",
-//        blenderInfo);
-//        another.setJobStatus(JobStatus.Queued);
-//        serverMeta.addToJobQueue(another);
+//        BlenderProjectInfo blenderInfo = new BlenderProjectInfo(0, 10);
+//        blenderInfo.setFramesCompleted(5);
+//        JobRequest right_here = new JobRequest("kyang@eastsideprep.org", ProjectType.BlenderCycles, "Right_Here",
+//                blenderInfo);
+//        serverMeta.addToVerifyingQueue(right_here);
+        JobRequest create_edit_sequence = new JobRequest("kyang@eastsideprep.org", ProjectType.PremierePro, "create-edit-sequence", null);
+        serverMeta.addToVerifyingQueue(create_edit_sequence);
 
 
         // SECTION: Open communication
@@ -96,8 +93,6 @@ public class EPSRenderCore {
                             serverMeta.addServerNode(newNode);
                             System.out.println("[New Node]:\t" + newNode.getNodeName() + "!");
                         }
-
-                        InitNextJob(); // prompt next job
                     } catch (Error error) { // wot
                         System.out.println("[WS Message Error]:\t" + error.getMessage());
                     }
@@ -106,6 +101,7 @@ public class EPSRenderCore {
                         Message inMessage = mapper.readValue(ctx.message(), Message.class);
                         JobRequest refJob =
                                 serverMeta.getJobFromVerifyingQueueWithName(inMessage.getData().getProjectFolderName());
+                        Node refNode = serverMeta.getServerNodeWithID(ctx.getSessionId());
 
                         switch (inMessage.getType()) {
                             case VerifyBlender: // returned a verified blender job
@@ -134,23 +130,20 @@ public class EPSRenderCore {
                                     }
 
                                     // reset node that did verifying
-                                    Node incomingNode = serverMeta.getServerNodeWithID(ctx.getSessionId());
-                                    incomingNode.setCurrentJob(null);
-                                    incomingNode.setNodeStatus(NodeStatus.Ready);
-
-                                    System.out.println("[Verify Queue Count]:\t" + serverMeta.getVerifyingQueue().size());
-                                    System.out.println("[Job Queue Count]:\t" + serverMeta.getJobQueue().size());
-                                    System.out.println("[Blender Queue Count]:\t" + serverMeta.getBlenderQueue().size());
+                                    refNode.setCurrentJob(null);
+                                    refNode.setNodeStatus(NodeStatus.Ready);
                                 } else { // and it's not
-                                    System.out.println("[Blender Verify]:\tProject " + inMessage.getData().getProjectFolderName() + " Failed!");
+                                    System.out.println("[Blender Verify]:\tProject \"" + inMessage.getData().getProjectFolderName() + "\" Failed!");
                                 }
 
                                 JsonNode mailResponse = sendMessage(inMessage.getData());
                                 System.out.println("[Email Response]:\t" + mailResponse.toString());
                                 break;
                             case VerifyPremiere:
+                                handleVerifiedME(inMessage, refJob, refNode, "[Premiere Verify]:\tProject \"");
                                 break;
                             case VerifyAE:
+                                handleVerifiedME(inMessage, refJob, refNode, "[After Effects Verify]:\tProject \"");
                                 break;
                             case RenderBlender:
                                 break;
@@ -164,6 +157,8 @@ public class EPSRenderCore {
                         System.out.println("[WS Message Error]:\t" + error.getMessage());
                     }
                 }
+
+                InitNextJob();
             });
         });
 
@@ -251,6 +246,7 @@ public class EPSRenderCore {
     }
 
     // SECTION: Internal methods
+
     private static void InitNextJob() throws JsonProcessingException {
         Node readyServerNode = serverMeta.getReadyServerNode();
         if (readyServerNode != null) {
@@ -263,6 +259,29 @@ public class EPSRenderCore {
                 System.out.println("[Init Next Job]:\tNo jobs available for now");
             }
         }
+    }
+    private static void handleVerifiedME(Message inMessage, JobRequest refJob, Node refNode, String s) throws UnirestException {
+        JsonNode mailResponse;
+        if (inMessage.getData().getVerified()) {
+            System.out.println(s + inMessage.getData().getProjectFolderName() + "\" Verified!");
+
+            // update job info
+            refJob.setVerified(true);
+            refJob.setJobStatus(JobStatus.Queued);
+
+            // add to Job Queue and remove from verify
+            serverMeta.addToJobQueue(refJob);
+            serverMeta.removeJobFromVerifyingQueueWithName(refJob.getProjectFolderName());
+
+            // reset node that did verifying
+            refNode.setCurrentJob(null);
+            refNode.setNodeStatus(NodeStatus.Ready);
+        } else {
+            System.out.println(s + inMessage.getData().getProjectFolderName() + "\" Failed!");
+        }
+
+        mailResponse = sendMessage(inMessage.getData());
+        System.out.println("[Email Response]:\t" + mailResponse.toString());
     }
 
     private static JsonNode sendMessage(JobRequest job) throws UnirestException {

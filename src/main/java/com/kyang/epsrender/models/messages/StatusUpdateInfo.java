@@ -49,8 +49,9 @@ public class StatusUpdateInfo {
             if (jr.getJobStatus().equals(JobStatus.Queued)) {
                 String row = jobQueueRowStarter(jr, JobStatus.Queued);
                 row += "Place <strong>" + placeInQueue + "</strong> in Queue";
-
                 row += rowClosing;
+
+                placeInQueue++;
                 this.jobQueue.add(row);
             }
         }
