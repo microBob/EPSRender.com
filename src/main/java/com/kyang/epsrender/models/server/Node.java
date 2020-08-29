@@ -38,7 +38,7 @@ public class Node {
         // Check Verify queue
         JobRequest jobFromVerifyingQueue = serverMeta.getJobFromVerifyingQueue();
         if (jobFromVerifyingQueue != null) {
-            System.out.println("[Node " + nodeName + "]: Verifying job " + jobFromVerifyingQueue.getProjectFolderName());
+            System.out.println("[Node " + nodeName + "]:\tVerifying job " + jobFromVerifyingQueue.getProjectFolderName());
 
             // set this as current job and set rendering
             currentJob = jobFromVerifyingQueue;

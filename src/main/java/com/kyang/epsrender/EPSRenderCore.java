@@ -2,6 +2,7 @@ package com.kyang.epsrender;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kyang.epsrender.Enums.JobStatus;
 import com.kyang.epsrender.Enums.MessageType;
 import com.kyang.epsrender.Enums.NodeStatus;
 import com.kyang.epsrender.Enums.ProjectType;
@@ -27,12 +28,14 @@ public class EPSRenderCore {
 
         // SECTION: demo items
 //        serverMeta.addServerNode(new Node("Tester 1", "kjasdhf9ia768927huisdaf9", 3));
-        BlenderProjectInfo blenderInfo = new BlenderProjectInfo(0, 10);
+        BlenderProjectInfo blenderInfo = new BlenderProjectInfo(true);
         blenderInfo.setFramesCompleted(5);
-        JobRequest right_here = new JobRequest("kyang@eastsideprep.org", ProjectType.BlenderCycles, "Right_Here", blenderInfo);
+        JobRequest right_here = new JobRequest("kyang@eastsideprep.org", ProjectType.BlenderCycles, "Right_Here",
+                blenderInfo);
 //        right_here.setJobStatus(JobStatus.Rendering);
         serverMeta.addToVerifyingQueue(right_here);
-//        JobRequest another = new JobRequest("kyang@eastsideprep.org", ProjectType.BlenderCycles, "another", blenderInfo);
+//        JobRequest another = new JobRequest("kyang@eastsideprep.org", ProjectType.BlenderCycles, "another",
+//        blenderInfo);
 //        another.setJobStatus(JobStatus.Queued);
 //        serverMeta.addToJobQueue(another);
 
@@ -40,7 +43,7 @@ public class EPSRenderCore {
         // SECTION: Open communication
         app.ws("/communication", ws -> {
             ws.onConnect(ctx -> {
-                System.out.println("[WS Connection]: " + ctx.getSessionId());
+                System.out.println("[WS Connection]:\t" + ctx.getSessionId());
 
                 // create new ctx hash with ctx id
                 serverMeta.addToCtxIdHash(ctx.getSessionId(), ctx);
@@ -54,7 +57,7 @@ public class EPSRenderCore {
                 // get node fro ctx ID
                 Node disNode = serverMeta.getServerNodeWithID(ctx.getSessionId());
                 // print disconnect
-                System.out.println("[Node Disconnected]: " + disNode.getNodeName() + " disconnected!");
+                System.out.println("[Node Disconnected]:\t" + disNode.getNodeName() + " disconnected!");
                 // set status to offline
                 disNode.setNodeStatus(NodeStatus.Offline);
 
@@ -64,40 +67,73 @@ public class EPSRenderCore {
                 }
             });
             ws.onMessage(ctx -> {
-                System.out.println("[WS Message]: " + ctx.message());
+                System.out.println("[WS Message]:\t" + ctx.message());
 
                 if (ctx.message().contains("{\"ctxSessionID\"")) { // check if it's a new node handshake
                     try {
+                        // try to read the handshake
                         NodeHandshakeInfo handshakeInfo = mapper.readValue(ctx.message(), NodeHandshakeInfo.class);
 
+                        // try to grab a node with name (check for preexistence)
                         Node preExisting = serverMeta.getServerNodeWithName(handshakeInfo.getNodeName());
-                        if (preExisting != null) {
-                            System.out.println("[Returning Node]: " + preExisting.getNodeName());
+                        if (preExisting != null) { // it's a returning node (by name)
+                            System.out.println("[Returning Node]:\t" + preExisting.getNodeName());
                             serverMeta.getCtxIdHash().remove(preExisting.getCtxSessionID());
                             preExisting.setCtxSessionID(handshakeInfo.getCtxSessionID());
                             preExisting.setNodeStatus(NodeStatus.Ready);
-                        } else {
-                            Node newNode = new Node(handshakeInfo.getNodeName(), handshakeInfo.getCtxSessionID(), handshakeInfo.getPowerIndex());
+                        } else { // brand new node? create a new node and register
+                            Node newNode = new Node(handshakeInfo.getNodeName(), handshakeInfo.getCtxSessionID(),
+                                    handshakeInfo.getPowerIndex());
                             serverMeta.addServerNode(newNode);
-                            System.out.println("[New Node]: " + newNode.getNodeName() + "!");
+                            System.out.println("[New Node]:\t" + newNode.getNodeName() + "!");
                         }
 
-                        InitNextJob();
-                    } catch (Error error) { // now we actually have a problem
-                        System.out.println("[WS Message Error]: " + error.getMessage());
+                        InitNextJob(); // prompt next job
+                    } catch (Error error) { // wot
+                        System.out.println("[WS Message Error]:\t" + error.getMessage());
                     }
                 } else { // more typically, it's a job message
                     try {
                         Message inMessage = mapper.readValue(ctx.message(), Message.class);
 
                         switch (inMessage.getType()) {
-                            case VerifyBlender:
-                                if (inMessage.getData().getVerified()) {
-                                    System.out.println("[Blender Verify]: project "+inMessage.getData().getProjectFolderName()+" Verified!");
-                                    // ready to branch out to render que
+                            case VerifyBlender: // returned a verified blender job
+                                if (inMessage.getData().getVerified()) { // and it's good
+                                    System.out.println("[Blender Verify]:\tProject " + inMessage.getData().getProjectFolderName() + " Verified!");
+                                    JobRequest refJob =
+                                            serverMeta.getJobFromVerifyingQueueWithName(inMessage.getData().getProjectFolderName());
 
-                                } else {
-                                    System.out.println("[Blender Verify]: project "+inMessage.getData().getProjectFolderName()+" Failed!");
+                                    // update info
+                                    refJob.setVerified(true);
+                                    if (refJob.getBlenderInfo().getUseAllFrames()) {
+                                        refJob.getBlenderInfo().setStartFrame(inMessage.getData().getBlenderInfo().getStartFrame());
+                                        refJob.getBlenderInfo().setEndFrame(inMessage.getData().getBlenderInfo().getEndFrame());
+                                    }
+
+                                    refJob.setJobStatus(JobStatus.Queued);
+                                    refJob.getBlenderInfo().setFramesCompleted(0);
+                                    refJob.getBlenderInfo().setRenderers(0);
+
+                                    // add to Job Queue and remove from verify
+                                    serverMeta.addToJobQueue(refJob);
+                                    serverMeta.removeJobFromVerifyingQueueWithName(refJob.getProjectFolderName());
+
+                                    // ready to branch out to render que
+                                    for (int frame = refJob.getBlenderInfo().getStartFrame(); frame <= refJob.getBlenderInfo().getEndFrame(); frame++) {
+                                        refJob.getBlenderInfo().setFrameNumber(frame);
+                                        serverMeta.addToBlenderQueue(refJob);
+                                    }
+
+                                    // reset node that did verifying
+                                    Node incomingNode = serverMeta.getServerNodeWithID(ctx.getSessionId());
+                                    incomingNode.setCurrentJob(null);
+                                    incomingNode.setNodeStatus(NodeStatus.Ready);
+
+                                    System.out.println("[Verify Queue Count]:\t" + serverMeta.getVerifyingQueue().size());
+                                    System.out.println("[Job Queue Count]:\t" + serverMeta.getJobQueue().size());
+                                    System.out.println("[Blender Queue Count]:\t"+serverMeta.getBlenderQueue().size());
+                                } else { // and it's not
+                                    System.out.println("[Blender Verify]:\tProject " + inMessage.getData().getProjectFolderName() + " Failed!");
                                     // send emails
 
                                 }
@@ -112,11 +148,11 @@ public class EPSRenderCore {
                             case RenderME:
                                 break;
                             default:
-                                System.out.println("[Message Parsing Error] Unknown type " + inMessage.getType().toString());
+                                System.out.println("[Message Parsing Error]:\tUnknown type " + inMessage.getType().toString());
                                 break;
                         }
                     } catch (Error error) {
-                        System.out.println("[WS Message Error]: " + error.getMessage());
+                        System.out.println("[WS Message Error]:\t" + error.getMessage());
                     }
                 }
             });
@@ -125,7 +161,7 @@ public class EPSRenderCore {
 
         //SECTION: Login
         app.get("/login", ctx -> {
-            System.out.println("[Route Requested]: /login");
+            System.out.println("[Route Requested]:\t/login");
 
             String returnAddress = "http://" + ctx.host() + "/complete_login";
             String url = "http://epsauth.azurewebsites.net/login?url=" + returnAddress + "&loginparam=userEmail";
@@ -134,7 +170,7 @@ public class EPSRenderCore {
             ctx.result("Running login");
         });
         app.get("/complete_login", ctx -> {
-            System.out.println("[Route Requested]: /complete_login");
+            System.out.println("[Route Requested]:\t/complete_login");
 
             registerUser(ctx, ctx.queryParam("userEmail"));
 
@@ -142,7 +178,7 @@ public class EPSRenderCore {
         });
 
         app.get("/update_login_stat", ctx -> {
-            System.out.println("[Route Requested]: /update_login_stat");
+            System.out.println("[Route Requested]:\t/update_login_stat");
             // If it is a valid EPS email
             String userEmail = getUserEmail(ctx);
             if (userEmail != null) {
@@ -160,7 +196,7 @@ public class EPSRenderCore {
 
         // SECTION: Adding a new Job
         app.put("/add_new_job", ctx -> {
-            System.out.println("[Route Requested]: /add_new_job");
+            System.out.println("[Route Requested]:\t/add_new_job");
 
             String userEmail = getUserEmail(ctx);
             int projectTypeInt = Integer.parseInt(Objects.requireNonNull(ctx.queryParam("projectType")));
@@ -170,7 +206,8 @@ public class EPSRenderCore {
             if (projectTypeInt > 1) {
                 boolean blenderUseAllFrames = Boolean.parseBoolean(ctx.queryParam("blenderUseAll"));
                 if (!blenderUseAllFrames) {
-                    int blenderStartFrame = Integer.parseInt(Objects.requireNonNull(ctx.queryParam("blenderStartFrame")));
+                    int blenderStartFrame = Integer.parseInt(Objects.requireNonNull(ctx.queryParam("blenderStartFrame"
+                    )));
                     int blenderEndFrame = Integer.parseInt(Objects.requireNonNull(ctx.queryParam("blenderEndFrame")));
 
                     blenderProjectInfo = new BlenderProjectInfo(blenderStartFrame, blenderEndFrame);
@@ -179,21 +216,23 @@ public class EPSRenderCore {
                 }
             }
 
-            JobRequest newJobRequest = new JobRequest(userEmail, ProjectType.values()[projectTypeInt], projectFolderName, blenderProjectInfo);
+            JobRequest newJobRequest = new JobRequest(userEmail, ProjectType.values()[projectTypeInt],
+                    projectFolderName, blenderProjectInfo);
 
             serverMeta.addToVerifyingQueue(newJobRequest);
 
             InitNextJob();
 
-            System.out.println("[Sent Job to verification]: " + newJobRequest.getProjectFolderName());
+            System.out.println("[Sent Job to verification]:\t" + newJobRequest.getProjectFolderName());
         });
         // SECTION ^: Adding a new Job
 
         // SECTION: Server Status
         app.get("/update_stat", ctx -> {
-            System.out.println("[Route Requested]: /update_stat");
+            System.out.println("[Route Requested]:\t/update_stat");
             // Get info
-            StatusUpdateInfo updateInfo = new StatusUpdateInfo(serverMeta.getJobQueue(), serverMeta.getVerifyingQueue(), serverMeta.getServerNodes());
+            StatusUpdateInfo updateInfo = new StatusUpdateInfo(serverMeta.getJobQueue(),
+                    serverMeta.getVerifyingQueue(), serverMeta.getServerNodes());
             // Send it over
             String resultString = mapper.writeValueAsString(updateInfo);
             ctx.result(resultString);
@@ -212,7 +251,7 @@ public class EPSRenderCore {
 
                 serverMeta.getCtxIdHash().get(readyServerNode.getCtxSessionID()).send(jsonMsg);
             } else {
-                System.out.println("[Init Next Job]: No jobs available for now");
+                System.out.println("[Init Next Job]:\tNo jobs available for now");
             }
         }
     }

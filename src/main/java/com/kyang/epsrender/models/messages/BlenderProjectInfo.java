@@ -42,7 +42,7 @@ public class BlenderProjectInfo {
         this.endFrame = endFrame;
     }
 
-    public boolean isUseAllFrames() {
+    public boolean getUseAllFrames() {
         return useAllFrames;
     }
 

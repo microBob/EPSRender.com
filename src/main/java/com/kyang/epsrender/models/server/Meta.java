@@ -15,8 +15,9 @@ public class Meta {
     private HashMap<String, WsContext> ctxIdHash = new HashMap<>();
 
 
-    // SECTION: Getters and setters
+    //// SECTION: Getters and setters
 
+    // SECTION: Job Queue
     public ArrayList<JobRequest> getJobQueue() {
         return jobQueue;
     }
@@ -42,6 +43,7 @@ public class Meta {
         return null;
     }
 
+    // SECTION: Verifying Queue
     public ArrayList<JobRequest> getVerifyingQueue() {
         return verifyingQueue;
     }
@@ -63,6 +65,15 @@ public class Meta {
         return null;
     }
 
+    public JobRequest getJobFromVerifyingQueueWithName(String folderName) {
+        return verifyingQueue.stream().filter(jobRequest -> folderName.equals(jobRequest.getProjectFolderName())).findFirst().orElse(null);
+    }
+
+    public void removeJobFromVerifyingQueueWithName(String folderName) {
+        verifyingQueue.remove(verifyingQueue.stream().filter(jobRequest -> folderName.equals(jobRequest.getProjectFolderName())).findFirst().orElse(null));
+    }
+
+    // SECTION: Blender Queue
     public ArrayList<JobRequest> getBlenderQueue() {
         return blenderQueue;
     }
@@ -71,10 +82,15 @@ public class Meta {
         this.blenderQueue = blenderQueue;
     }
 
+    public void addToBlenderQueue(JobRequest jobRequest) {
+        this.blenderQueue.add(jobRequest);
+    }
+
     public void removeBlenderJob(JobRequest blenderJob) {
         this.blenderQueue.remove(blenderJob);
     }
 
+    // SECTION: Server Nodes
     public ArrayList<Node> getServerNodes() {
         sortServerNodes();
         return serverNodes;
