@@ -9,6 +9,10 @@ import com.kyang.epsrender.Enums.ProjectType;
 import com.kyang.epsrender.models.messages.*;
 import com.kyang.epsrender.models.server.Meta;
 import com.kyang.epsrender.models.server.Node;
+import com.mashape.unirest.http.HttpResponse;
+import com.mashape.unirest.http.JsonNode;
+import com.mashape.unirest.http.Unirest;
+import com.mashape.unirest.http.exceptions.UnirestException;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 
@@ -19,6 +23,10 @@ public class EPSRenderCore {
     // Global vars
     private static final Meta serverMeta = new Meta();
     private static final ObjectMapper mapper = new ObjectMapper();
+
+    private static final String mailgunDomain = "sandbox502a3c858cc64b8a963c2a3286770a7b.mailgun.org";
+    private static final String mailgunAPIKey = "3f767055f38819fcd64755f7faea6adf-4d640632-a33fff72";
+
 
     public static void main(String[] args) {
         Javalin app = Javalin.create(config -> config.addStaticFiles("/public")).start(7000);
@@ -132,6 +140,9 @@ public class EPSRenderCore {
                                     System.out.println("[Verify Queue Count]:\t" + serverMeta.getVerifyingQueue().size());
                                     System.out.println("[Job Queue Count]:\t" + serverMeta.getJobQueue().size());
                                     System.out.println("[Blender Queue Count]:\t"+serverMeta.getBlenderQueue().size());
+
+                                    JsonNode mailResponse = sendMessage(refJob);
+                                    System.out.println("[Email Response]:\t"+mailResponse.toString());
                                 } else { // and it's not
                                     System.out.println("[Blender Verify]:\tProject " + inMessage.getData().getProjectFolderName() + " Failed!");
                                     // send emails
@@ -254,6 +265,17 @@ public class EPSRenderCore {
                 System.out.println("[Init Next Job]:\tNo jobs available for now");
             }
         }
+    }
+    private static JsonNode sendMessage(JobRequest job) throws UnirestException {
+        HttpResponse<JsonNode> request = Unirest.post("https://api.mailgun.net/v3/" + mailgunDomain + "/messages")
+                .basicAuth("api", mailgunAPIKey)
+                .field("from", "EPSRender Server Notification <kyang@eastsideprep.org>")
+                .field("to", job.getUserEmail())
+                .field("subject", "Test message")
+                .field("text", "Hello, testing")
+                .asJson();
+
+        return request.getBody();
     }
     // SECTION ^: Internal methods
 
