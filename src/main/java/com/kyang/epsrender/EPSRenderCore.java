@@ -36,7 +36,8 @@ public class EPSRenderCore {
 
         // SECTION: demo items
 //        serverMeta.addServerNode(new Node("Tester 1", "kjasdhf9ia768927huisdaf9", 3));
-        BlenderProjectInfo blenderInfo = new BlenderProjectInfo(true);
+//        BlenderProjectInfo blenderInfo = new BlenderProjectInfo(true);
+        BlenderProjectInfo blenderInfo = new BlenderProjectInfo(0, 10);
         blenderInfo.setFramesCompleted(5);
         JobRequest right_here = new JobRequest("kyang@eastsideprep.org", ProjectType.BlenderCycles, "Right_Here",
                 blenderInfo);
@@ -103,13 +104,13 @@ public class EPSRenderCore {
                 } else { // more typically, it's a job message
                     try {
                         Message inMessage = mapper.readValue(ctx.message(), Message.class);
+                        JobRequest refJob =
+                                serverMeta.getJobFromVerifyingQueueWithName(inMessage.getData().getProjectFolderName());
 
                         switch (inMessage.getType()) {
                             case VerifyBlender: // returned a verified blender job
                                 if (inMessage.getData().getVerified()) { // and it's good
                                     System.out.println("[Blender Verify]:\tProject " + inMessage.getData().getProjectFolderName() + " Verified!");
-                                    JobRequest refJob =
-                                            serverMeta.getJobFromVerifyingQueueWithName(inMessage.getData().getProjectFolderName());
 
                                     // update info
                                     refJob.setVerified(true);
@@ -139,16 +140,13 @@ public class EPSRenderCore {
 
                                     System.out.println("[Verify Queue Count]:\t" + serverMeta.getVerifyingQueue().size());
                                     System.out.println("[Job Queue Count]:\t" + serverMeta.getJobQueue().size());
-                                    System.out.println("[Blender Queue Count]:\t"+serverMeta.getBlenderQueue().size());
-
-                                    JsonNode mailResponse = sendMessage(refJob);
-                                    System.out.println("[Email Response]:\t"+mailResponse.toString());
+                                    System.out.println("[Blender Queue Count]:\t" + serverMeta.getBlenderQueue().size());
                                 } else { // and it's not
                                     System.out.println("[Blender Verify]:\tProject " + inMessage.getData().getProjectFolderName() + " Failed!");
-                                    // send emails
-
                                 }
 
+                                JsonNode mailResponse = sendMessage(inMessage.getData());
+                                System.out.println("[Email Response]:\t" + mailResponse.toString());
                                 break;
                             case VerifyPremiere:
                                 break;
@@ -266,13 +264,49 @@ public class EPSRenderCore {
             }
         }
     }
+
     private static JsonNode sendMessage(JobRequest job) throws UnirestException {
+        String subject = "";
+        String html = "<html>";
+        String tag = "";
+        if (job.getJobStatus().equals(JobStatus.Queued)) {
+            if (job.getVerified()) {
+                subject = "\"" + job.getProjectFolderName() + "\" Verified!";
+
+                html += "<h2>Hello! This message is to let you know <u>\"" + job.getProjectFolderName() + "\"</u" +
+                        "> has <u>successfully been verified</u>!</h2>";
+                html += "<p>Your project has been placed in the render queue. You will be notified again when " +
+                        "rendering " +
+                        "has completed.</p>";
+
+                tag = "Verified Blender";
+            } else {
+                subject = "\"" + job.getProjectFolderName() + "\" Failed Verification!";
+
+                html += "<h2>Hello! This message is to let you know <u>\"" + job.getProjectFolderName() + "\"</u" +
+                        "> has <u>failed verification</u>!</h2>";
+                html += "<h3>Failure reason: " + job.getErrorMsg() + "</h3>";
+                html += "<p>Your project has been removed from the server. Please make appropriate changes and " +
+                        "resubmit" +
+                        ".</p>";
+                html += "<p>If you believe there has been a mistake, please <a href=\"mailto:kyang@eastsideprep" +
+                        ".org\">contact support</a> for assistance.</p>";
+
+                if (job.getErrorMsg().contains("A server node")) {
+                    tag = "Error: Blender Verification";
+                } else {
+                    tag = "Reject: Blender Verification";
+                }
+            }
+        }
+
         HttpResponse<JsonNode> request = Unirest.post("https://api.mailgun.net/v3/" + mailgunDomain + "/messages")
                 .basicAuth("api", mailgunAPIKey)
                 .field("from", "EPSRender Server Notification <kyang@eastsideprep.org>")
                 .field("to", job.getUserEmail())
-                .field("subject", "Test message")
-                .field("text", "Hello, testing")
+                .field("subject", subject)
+                .field("html", html)
+                .field("o:tag", tag)
                 .asJson();
 
         return request.getBody();
