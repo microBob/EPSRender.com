@@ -1,5 +1,6 @@
 package com.kyang.epsrender.models.messages;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.kyang.epsrender.Enums.ProjectType;
 import com.kyang.epsrender.Enums.JobStatus;
 import com.kyang.epsrender.models.messages.BlenderProjectInfo;
@@ -30,12 +31,16 @@ public class JobRequest {
         setTimeAddedNow();
     }
 
+    public JobRequest() {
+    }
+
 
     // SECTION: Getters and setters
     public String getUserEmail() {
         return userEmail;
     }
 
+    @JsonIgnore
     public String getUserName() {
         int atIndex = userEmail.indexOf("@");
         if (atIndex > 0) {
@@ -73,7 +78,7 @@ public class JobRequest {
         this.blenderInfo = blenderInfo;
     }
 
-    public boolean isVerified() {
+    public boolean getVerified() {
         return verified;
     }
 

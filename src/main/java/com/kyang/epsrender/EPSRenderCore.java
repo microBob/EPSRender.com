@@ -60,7 +60,7 @@ public class EPSRenderCore {
 
                 // handle job (if died with job)
                 if (disNode.getCurrentJob() != null) {
-                    serverMeta.addToJobQueueBeginning(disNode.getCurrentJob());
+                    disNode.setCurrentJob(null);
                 }
             });
             ws.onMessage(ctx -> {
@@ -92,9 +92,15 @@ public class EPSRenderCore {
 
                         switch (inMessage.getType()) {
                             case VerifyBlender:
-//                        BlenderFrames blenderFrames = mapper.readValue(inMessage.getPayload(), BlenderFrames.class);
-                                BlenderProjectInfo blenderProjectInfo = (BlenderProjectInfo) inMessage.getData();
-                                System.out.println("[Blender Frames]: " + blenderProjectInfo.getStartFrame() + ", " + blenderProjectInfo.getEndFrame());
+                                if (inMessage.getData().getVerified()) {
+                                    System.out.println("[Blender Verify]: project "+inMessage.getData().getProjectFolderName()+" Verified!");
+                                    // ready to branch out to render que
+
+                                } else {
+                                    System.out.println("[Blender Verify]: project "+inMessage.getData().getProjectFolderName()+" Failed!");
+                                    // send emails
+
+                                }
 
                                 break;
                             case VerifyPremiere:
@@ -201,9 +207,13 @@ public class EPSRenderCore {
         Node readyServerNode = serverMeta.getReadyServerNode();
         if (readyServerNode != null) {
             Message jobMsg = readyServerNode.getNextJob();
-            String jsonMsg = mapper.writeValueAsString(jobMsg);
+            if (jobMsg != null) {
+                String jsonMsg = mapper.writeValueAsString(jobMsg);
 
-            serverMeta.getCtxIdHash().get(readyServerNode.getCtxSessionID()).send(jsonMsg);
+                serverMeta.getCtxIdHash().get(readyServerNode.getCtxSessionID()).send(jsonMsg);
+            } else {
+                System.out.println("[Init Next Job]: No jobs available for now");
+            }
         }
     }
     // SECTION ^: Internal methods

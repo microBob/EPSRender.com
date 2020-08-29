@@ -23,7 +23,7 @@ public class Message {
         this.type = type;
     }
 
-    public Object getData() {
+    public JobRequest getData() {
         return data;
     }
 
