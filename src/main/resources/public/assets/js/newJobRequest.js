@@ -97,7 +97,7 @@ function completionValidation(showIssue = false) {
     let smallerEndFrameMsg = false;
 
     // 1
-    if ($projectTypeSelect.val() > 2) {
+    if ($projectTypeSelect.val() > 1) {
         checkForBlender = !$blenderUseAllFramesCheck.prop("checked");
     } else {
         checkForBlender = false;

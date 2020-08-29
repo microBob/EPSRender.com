@@ -49,8 +49,9 @@ public class StatusUpdateInfo {
             if (jr.getJobStatus().equals(JobStatus.Queued)) {
                 String row = jobQueueRowStarter(jr, JobStatus.Queued);
                 row += "Place <strong>" + placeInQueue + "</strong> in Queue";
-
                 row += rowClosing;
+
+                placeInQueue++;
                 this.jobQueue.add(row);
             }
         }
@@ -70,7 +71,7 @@ public class StatusUpdateInfo {
                     row += "text-danger";
                     break;
                 default:
-                    System.out.println("[StatusUpdateInfo]: unhandled NodeStatus " + n.getNodeStatus());
+                    System.out.println("[StatusUpdateInfo]:\tUnhandled NodeStatus " + n.getNodeStatus());
                     break;
             }
             row += "\">";
@@ -103,7 +104,7 @@ public class StatusUpdateInfo {
                 row += "text-primary";
                 break;
             default:
-                System.out.println("[StatusUpdateInfo]: unhandled JobStatus " + jobStatus);
+                System.out.println("[StatusUpdateInfo]:\tUnhandled JobStatus " + jobStatus);
                 break;
         }
         row += "\">";
