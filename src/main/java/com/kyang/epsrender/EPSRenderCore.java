@@ -60,7 +60,7 @@ public class EPSRenderCore {
                 ctx.send(ctx.getSessionId());
             });
             ws.onClose(ctx -> {
-                // get node fro ctx ID
+                // get node from ctx ID
                 Node disNode = serverMeta.getServerNodeWithID(ctx.getSessionId());
                 // print disconnect
                 System.out.println("[Node Disconnected]:\t" + disNode.getNodeName() + " disconnected!");
@@ -68,7 +68,10 @@ public class EPSRenderCore {
                 disNode.setNodeStatus(NodeStatus.Offline);
 
                 // handle job (if died with job)
-                if (disNode.getCurrentJob() != null) {
+                JobRequest currentJob = disNode.getCurrentJob();
+                if (currentJob != null) {
+                    currentJob.setJobStatus(JobStatus.Necro);
+                    serverMeta.addToJobQueueBeginning(currentJob);
                     disNode.setCurrentJob(null);
                 }
             });
