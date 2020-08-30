@@ -2,12 +2,13 @@ package com.kyang.epsrender.models.server;
 
 import com.kyang.epsrender.Enums.JobStatus;
 import com.kyang.epsrender.Enums.NodeStatus;
-import com.kyang.epsrender.Enums.ProjectType;
 import com.kyang.epsrender.models.messages.JobRequest;
 import io.javalin.websocket.WsContext;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class Meta {
     private final ArrayList<JobRequest> jobQueue = new ArrayList<>();
@@ -51,15 +52,41 @@ public class Meta {
             }
             // check for active blender jobs
             JobRequest openBlenderJob =
-                    jobQueue.stream().filter(jobRequest -> jobRequest.getBlenderInfo() != null && jobRequest.getBlenderInfo().getRenderers() == 0).findFirst().orElse(null);
+                    jobQueue.stream().filter(jobRequest -> jobRequest.getBlenderInfo() != null &&
+                            jobRequest.getJobStatus().equals(JobStatus.Rendering) &&
+                            jobRequest.getBlenderInfo().getRenderers() == 0).findFirst().orElse(null);
+            int index = jobQueue.indexOf(openBlenderJob);
             if (openBlenderJob != null) {
-                openBlenderJob.getBlenderInfo().setRenderers(1);
+                openBlenderJob.getBlenderInfo().addRenderers();
+                jobQueue.set(index, openBlenderJob);
                 return openBlenderJob;
             }
+            // pick next job
+            JobRequest openJob =
+                    jobQueue.stream().filter(jobRequest -> isJobNotTakenByNode(jobRequest)).findFirst().orElse(null);
+            index = jobQueue.indexOf(openJob);
+            if (openJob != null) {
+                openJob.setJobStatus(JobStatus.Rendering);
+                jobQueue.set(index, openJob);
+                return openJob;
+            }
+            // pick next frame from active blender job
+            for (JobRequest blenderJob :
+                    jobQueue.stream().filter(jobRequest -> jobRequest.getBlenderInfo() != null && jobRequest.getJobStatus().equals(JobStatus.Rendering)).collect(Collectors.toList())) {
+                index = jobQueue.indexOf(blenderJob);
+                List<JobRequest> frames = getBlenderQueue().stream().filter(blenderFrame -> blenderFrame.getProjectFolderName().equals(blenderJob.getProjectFolderName())).collect(Collectors.toList());
 
-            for (JobRequest request : jobQueue) {
-                if (isJobTakenByNode(request)) {
-                    return request;
+                JobRequest openFrame =
+                        frames.stream().filter(frame -> isJobNotTakenByNode(frame)).findFirst().orElse(null);
+                int frameIndex = getBlenderQueue().indexOf(openFrame);
+                if (openFrame != null) {
+                    openFrame.setJobStatus(JobStatus.Rendering);
+                    blenderJob.getBlenderInfo().addRenderers();
+
+                    jobQueue.set(index, blenderJob);
+                    getBlenderQueue().set(frameIndex, openFrame);
+
+                    return openFrame;
                 }
             }
             return null;
@@ -81,12 +108,7 @@ public class Meta {
 
     public JobRequest getJobFromVerifyingQueue() {
         synchronized (verifyingQueue) {
-            for (JobRequest request : verifyingQueue) {
-                if (!isJobTakenByNode(request)) {
-                    return request;
-                }
-            }
-            return null;
+            return verifyingQueue.stream().filter(jobRequest -> isJobNotTakenByNode(jobRequest)).findFirst().orElse(null);
         }
     }
 
@@ -147,15 +169,9 @@ public class Meta {
         }
     }
 
-    public boolean isJobTakenByNode(JobRequest jobRequest) {
+    public boolean isJobNotTakenByNode(JobRequest jobRequest) {
         synchronized (serverNodes) {
-            for (Node node : serverNodes) {
-                JobRequest currentJob = node.getCurrentJob();
-                if (currentJob != null && currentJob.equals(jobRequest)) {
-                    return true;
-                }
-            }
-            return false;
+            return serverNodes.stream().noneMatch(node -> node.getCurrentJob() != null && node.getCurrentJob().equals(jobRequest));
         }
     }
 

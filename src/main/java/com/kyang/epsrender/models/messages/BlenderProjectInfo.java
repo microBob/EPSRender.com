@@ -78,7 +78,15 @@ public class BlenderProjectInfo {
         return renderers;
     }
 
-    public void setRenderers(int renderers) {
-        this.renderers = renderers;
+    public void clearRenderers() {
+        this.renderers = 0;
+    }
+
+    public void addRenderers() {
+        this.renderers++;
+    }
+
+    public void removeRenderers() {
+        this.renderers--;
     }
 }

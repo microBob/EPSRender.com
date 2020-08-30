@@ -120,7 +120,7 @@ public class EPSRenderCore {
 
                                     refJob.setJobStatus(JobStatus.Queued);
                                     refJob.getBlenderInfo().setFramesCompleted(0);
-                                    refJob.getBlenderInfo().setRenderers(0);
+                                    refJob.getBlenderInfo().clearRenderers();
 
                                     // add to Job Queue and remove from verify
                                     serverMeta.addToJobQueue(refJob);
