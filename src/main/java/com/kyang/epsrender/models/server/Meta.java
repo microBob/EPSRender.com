@@ -42,54 +42,62 @@ public class Meta {
     public JobRequest getJobFromJobQueue() {
         synchronized (jobQueue) {
             // check for necro
-            JobRequest jobZero = jobQueue.get(0);
-            if (jobZero != null) {
+            if (!jobQueue.isEmpty()) {
+                JobRequest jobZero = jobQueue.get(0);
                 if (jobZero.getJobStatus().equals(JobStatus.Necro)) {
                     jobZero.setJobStatus(JobStatus.Rendering);
                     jobQueue.set(0, jobZero);
                     return jobZero;
                 }
-            }
-            // check for active blender jobs
-            JobRequest openBlenderJob =
-                    jobQueue.stream().filter(jobRequest -> jobRequest.getBlenderInfo() != null &&
-                            jobRequest.getJobStatus().equals(JobStatus.Rendering) &&
-                            jobRequest.getBlenderInfo().getRenderers() == 0).findFirst().orElse(null);
-            int index = jobQueue.indexOf(openBlenderJob);
-            if (openBlenderJob != null) {
-                openBlenderJob.getBlenderInfo().addRenderers();
-                jobQueue.set(index, openBlenderJob);
-                return openBlenderJob;
-            }
-            // pick next job
-            JobRequest openJob =
-                    jobQueue.stream().filter(jobRequest -> isJobNotTakenByNode(jobRequest)).findFirst().orElse(null);
-            index = jobQueue.indexOf(openJob);
-            if (openJob != null) {
-                openJob.setJobStatus(JobStatus.Rendering);
-                jobQueue.set(index, openJob);
-                return openJob;
-            }
-            // pick next frame from active blender job
-            for (JobRequest blenderJob :
-                    jobQueue.stream().filter(jobRequest -> jobRequest.getBlenderInfo() != null && jobRequest.getJobStatus().equals(JobStatus.Rendering)).collect(Collectors.toList())) {
-                index = jobQueue.indexOf(blenderJob);
-                List<JobRequest> frames = getBlenderQueue().stream().filter(blenderFrame -> blenderFrame.getProjectFolderName().equals(blenderJob.getProjectFolderName())).collect(Collectors.toList());
 
-                JobRequest openFrame =
-                        frames.stream().filter(frame -> isJobNotTakenByNode(frame)).findFirst().orElse(null);
-                int frameIndex = getBlenderQueue().indexOf(openFrame);
-                if (openFrame != null) {
-                    openFrame.setJobStatus(JobStatus.Rendering);
-                    blenderJob.getBlenderInfo().addRenderers();
+                // check for active blender jobs
+                JobRequest openBlenderJob =
+                        jobQueue.stream().filter(jobRequest -> jobRequest.getBlenderInfo() != null &&
+                                jobRequest.getJobStatus().equals(JobStatus.Rendering) &&
+                                jobRequest.getBlenderInfo().getRenderers() == 0).findFirst().orElse(null);
+                int index = jobQueue.indexOf(openBlenderJob);
+                if (openBlenderJob != null) {
+                    openBlenderJob.getBlenderInfo().addRenderers();
+                    jobQueue.set(index, openBlenderJob);
+                    return openBlenderJob;
+                }
+                // pick next job
+                JobRequest openJob =
+                        jobQueue.stream().filter(jobRequest -> isJobNotTakenByNode(jobRequest)).findFirst().orElse(null);
+                index = jobQueue.indexOf(openJob);
+                if (openJob != null) {
+                    openJob.setJobStatus(JobStatus.Rendering);
+                    jobQueue.set(index, openJob);
+                    return openJob;
+                }
+                // pick next frame from active blender job
+                for (JobRequest blenderJob :
+                        jobQueue.stream().filter(jobRequest -> jobRequest.getBlenderInfo() != null && jobRequest.getJobStatus().equals(JobStatus.Rendering)).collect(Collectors.toList())) {
+                    index = jobQueue.indexOf(blenderJob);
+                    List<JobRequest> frames =
+                            getBlenderQueue().stream().filter(blenderFrame -> blenderFrame.getProjectFolderName().equals(blenderJob.getProjectFolderName())).collect(Collectors.toList());
 
-                    jobQueue.set(index, blenderJob);
-                    getBlenderQueue().set(frameIndex, openFrame);
+                    JobRequest openFrame =
+                            frames.stream().filter(frame -> isJobNotTakenByNode(frame)).findFirst().orElse(null);
+                    int frameIndex = getBlenderQueue().indexOf(openFrame);
+                    if (openFrame != null) {
+                        openFrame.setJobStatus(JobStatus.Rendering);
+                        blenderJob.getBlenderInfo().addRenderers();
 
-                    return openFrame;
+                        jobQueue.set(index, blenderJob);
+                        getBlenderQueue().set(frameIndex, openFrame);
+
+                        return openFrame;
+                    }
                 }
             }
             return null;
+        }
+    }
+
+    public void removeJobFromJobQueWithName(String folderName) {
+        synchronized (jobQueue) {
+            jobQueue.removeIf(jobRequest -> jobRequest.getProjectFolderName().equals(folderName));
         }
     }
 
@@ -120,7 +128,7 @@ public class Meta {
 
     public void removeJobFromVerifyingQueueWithName(String folderName) {
         synchronized (verifyingQueue) {
-            verifyingQueue.remove(verifyingQueue.stream().filter(jobRequest -> folderName.equals(jobRequest.getProjectFolderName())).findFirst().orElse(null));
+            verifyingQueue.removeIf(jobRequest -> jobRequest.getProjectFolderName().equals(folderName));
         }
     }
 
