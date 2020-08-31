@@ -128,7 +128,7 @@
 | Name             | Enum Name     | Values                                                       | Notes                                                        |
 | ---------------- | ------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | Project Type     | `ProjectType` | `0 = PremierePro`<br />`1 = AfterEffects`<br />`2 = BlenderCycles`<br />`3 = BlenderEEVEE` |                                                              |
-| Job Status       | `JobStatus`   | `0 = Verifying`<br />`1 = Queued`<br />`2 = Rendering`       |                                                              |
+| Job Status       | `JobStatus`   | `0 = Verifying`<br />`1 = Queued`<br />`2 = Rendering`<br />`3 = Necro` | Necro is for jobs from died Nodes                            |
 | Node Power Index | `PowerIndex`  | `0 = Ultra`<br />`1 = High`<br />`2 = Mid`<br />`3 = Low`    | Tower 1<br />VR 1<br />Corsair 1, 2<br />DELL 1, 2, 3        |
 | Node Status      | `NodeStatus`  | `0 = Ready`<br />`1 = Rendering`<br />`2 = Offline`          |                                                              |
 | Message Type     | `MessageType` | `0 = VerifyBlender`<br />`1 = VerifyPremiere`<br />`2 = VerifyAE`<br />`3 = RenderBlender`<br />`4 = RenderME`<br />`5 = NewNodeHandshake` | Verify primarily is used to identify if a file can be found<br />Blender verify includes getting frames<br /><br />messages received from node means "done"<br /><br /> |
@@ -137,13 +137,12 @@
 
 ### Server Meta (`.models.Meta`)
 
-| Property        | Variable Name    | Type                         | Notes                                       |
-| --------------- | ---------------- | ---------------------------- | ------------------------------------------- |
-| Job Queue       | `jobQueue`       | `ArrayList<JobRequest>`      | holds all current requests their statuses   |
-| Verifying Queue | `verifyingQueue` | `ArrayList<JobRequest>`      | copy of an unverified request in `jobQueue` |
-| Blender Queue   | `blenderQueue`   | `ArrayList<JobRequest>`      | holds verified blender frames               |
-| Server nodes    | `serverNodes`    | `ArrayList<Node>`            |                                             |
-| CTX and ID hash | `ctxIdHash`      | `HashMap<String, WsContext>` | link node CTX ID to the WsContext           |
+| Property        | Variable Name    | Type                    | Notes                                       |
+| --------------- | ---------------- | ----------------------- | ------------------------------------------- |
+| Job Queue       | `jobQueue`       | `ArrayList<JobRequest>` | holds all current requests their statuses   |
+| Verifying Queue | `verifyingQueue` | `ArrayList<JobRequest>` | copy of an unverified request in `jobQueue` |
+| Blender Queue   | `blenderQueue`   | `ArrayList<JobRequest>` | holds verified blender frames               |
+| Server nodes    | `serverNodes`    | `ArrayList<Node>`       |                                             |
 ### Server Node (`.models.Node`)
 
 | Property           | Variable Name  | Type         | Notes                                   |

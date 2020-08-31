@@ -51,6 +51,23 @@ public class Node {
         }
 
         // Check Job queue
+        JobRequest jobFromJobQueue = serverMeta.getJobFromJobQueue();
+        if (jobFromJobQueue != null) {
+            System.out.println("[Node " + nodeName + "]:\tRendering job " + jobFromJobQueue.getProjectFolderName());
+
+            // set this as current job and set rendering
+            currentJob = jobFromJobQueue;
+            nodeStatus = NodeStatus.Rendering;
+
+            ProjectType projectType = jobFromJobQueue.getProjectType();
+            MessageType messageType;
+            if (projectType.equals(ProjectType.BlenderCycles) || projectType.equals(ProjectType.BlenderEEVEE)) {
+                messageType = MessageType.RenderBlender;
+            } else {
+                messageType = MessageType.RenderME;
+            }
+            return new Message(messageType, jobFromJobQueue);
+        }
 
         // No next job
         return null;

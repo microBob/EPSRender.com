@@ -6,5 +6,6 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 public enum JobStatus {
     Verifying,
     Queued,
-    Rendering
+    Rendering,
+    Necro
 }

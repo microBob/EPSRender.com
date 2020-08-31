@@ -42,8 +42,9 @@ public class EPSRenderCore {
 //        JobRequest right_here = new JobRequest("kyang@eastsideprep.org", ProjectType.BlenderCycles, "Right_Here",
 //                blenderInfo);
 //        serverMeta.addToVerifyingQueue(right_here);
-        JobRequest create_edit_sequence = new JobRequest("kyang@eastsideprep.org", ProjectType.PremierePro, "create-edit-sequence", null);
-        serverMeta.addToVerifyingQueue(create_edit_sequence);
+//        JobRequest create_edit_sequence = new JobRequest("kyang@eastsideprep.org", ProjectType.PremierePro, "create" +
+//                "-edit-sequence", null);
+//        serverMeta.addToVerifyingQueue(create_edit_sequence);
 
 
         // SECTION: Open communication
@@ -60,7 +61,7 @@ public class EPSRenderCore {
                 ctx.send(ctx.getSessionId());
             });
             ws.onClose(ctx -> {
-                // get node fro ctx ID
+                // get node from ctx ID
                 Node disNode = serverMeta.getServerNodeWithID(ctx.getSessionId());
                 // print disconnect
                 System.out.println("[Node Disconnected]:\t" + disNode.getNodeName() + " disconnected!");
@@ -68,7 +69,10 @@ public class EPSRenderCore {
                 disNode.setNodeStatus(NodeStatus.Offline);
 
                 // handle job (if died with job)
-                if (disNode.getCurrentJob() != null) {
+                JobRequest currentJob = disNode.getCurrentJob();
+                if (currentJob != null) {
+                    currentJob.setJobStatus(JobStatus.Necro);
+                    serverMeta.addToJobQueueBeginning(currentJob);
                     disNode.setCurrentJob(null);
                 }
             });
@@ -117,7 +121,7 @@ public class EPSRenderCore {
 
                                     refJob.setJobStatus(JobStatus.Queued);
                                     refJob.getBlenderInfo().setFramesCompleted(0);
-                                    refJob.getBlenderInfo().setRenderers(0);
+                                    refJob.getBlenderInfo().clearRenderers();
 
                                     // add to Job Queue and remove from verify
                                     serverMeta.addToJobQueue(refJob);
@@ -137,6 +141,7 @@ public class EPSRenderCore {
                                 }
 
                                 JsonNode mailResponse = sendMessage(inMessage.getData());
+
                                 System.out.println("[Email Response]:\t" + mailResponse.toString());
                                 break;
                             case VerifyPremiere:
@@ -148,6 +153,21 @@ public class EPSRenderCore {
                             case RenderBlender:
                                 break;
                             case RenderME:
+                                if (inMessage.getData().getVerified()) {
+                                    System.out.println("[ME Render]:\t\"" + inMessage.getData().getProjectFolderName() + "\" Completed!");
+                                } else {
+                                    System.out.println("[ME Render]:\t\"" + inMessage.getData().getProjectFolderName() + "\" Failed!");
+                                }
+
+                                // remove job from queue
+                                serverMeta.removeJobFromJobQueWithName(inMessage.getData().getProjectFolderName());
+
+                                // reset node
+                                refNode.setCurrentJob(null);
+                                refNode.setNodeStatus(NodeStatus.Ready);
+
+                                mailResponse = sendMessage(inMessage.getData());
+                                System.out.println("[Email Response]:\t" + mailResponse.toString());
                                 break;
                             default:
                                 System.out.println("[Message Parsing Error]:\tUnknown type " + inMessage.getType().toString());
@@ -260,6 +280,7 @@ public class EPSRenderCore {
             }
         }
     }
+
     private static void handleVerifiedME(Message inMessage, JobRequest refJob, Node refNode, String s) throws UnirestException {
         JsonNode mailResponse;
         if (inMessage.getData().getVerified()) {
@@ -298,7 +319,7 @@ public class EPSRenderCore {
                         "rendering " +
                         "has completed.</p>";
 
-                tag = "Verified Blender";
+                tag = "Verify ";
             } else {
                 subject = "\"" + job.getProjectFolderName() + "\" Failed Verification!";
 
@@ -312,11 +333,50 @@ public class EPSRenderCore {
                         ".org\">contact support</a> for assistance.</p>";
 
                 if (job.getErrorMsg().contains("A server node")) {
-                    tag = "Error: Blender Verification";
+                    tag = "Verifying Error ";
                 } else {
-                    tag = "Reject: Blender Verification";
+                    tag = "Verified Reject ";
                 }
             }
+        } else if (job.getJobStatus().equals(JobStatus.Rendering)) {
+            if (job.getVerified()) {
+                subject = "\"" + job.getProjectFolderName() + "\" Render Complete!";
+
+                html += "<h2>Hello! This message is to let you know <u>\"" + job.getProjectFolderName() + "\"</u" +
+                        "> has <u>successfully been rendered</u>!</h2>";
+                html += "<p>Your render is in the folder \"EPSRenderServerOutput\" located in your uploaded project folder.</p>";
+
+                tag = "Rendered ";
+            } else {
+                subject = "\"" + job.getProjectFolderName() + "\" Render Failed!";
+
+                html += "<h2>Hello! This message is to let you know <u>\"" + job.getProjectFolderName() + "\"</u" +
+                        "> has <u>failed to render</u>!</h2>";
+                html += "<h3>Failure reason: " + job.getErrorMsg() + "</h3>";
+                html += "<p>Your project has been removed from the server. Please make appropriate changes and " +
+                        "resubmit.</p>";
+                html += "<p>If you believe there has been a mistake, please <a href=\"mailto:kyang@eastsideprep" +
+                        ".org\">contact support</a> for assistance.</p>";
+
+                tag = "Failed Render ";
+            }
+        }
+
+        switch (job.getProjectType()) {
+            case BlenderCycles:
+                tag += "Blender Cycles";
+                break;
+            case BlenderEEVEE:
+                tag += "Blender EEVEE";
+                break;
+            case AfterEffects:
+                tag += "After Effects";
+                break;
+            case PremierePro:
+                tag += "Premiere Pro";
+                break;
+            default:
+                break;
         }
 
         HttpResponse<JsonNode> request = Unirest.post("https://api.mailgun.net/v3/" + mailgunDomain + "/messages")
