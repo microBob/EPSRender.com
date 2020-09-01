@@ -70,6 +70,10 @@ public class BlenderProjectInfo {
         return framesCompleted;
     }
 
+    public void addFramesCompleted() {
+        this.framesCompleted++;
+    }
+
     public void setFramesCompleted(int framesCompleted) {
         this.framesCompleted = framesCompleted;
     }

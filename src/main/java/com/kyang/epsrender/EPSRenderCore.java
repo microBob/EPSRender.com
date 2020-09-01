@@ -36,12 +36,12 @@ public class EPSRenderCore {
 
         // SECTION: demo items
 //        serverMeta.addServerNode(new Node("Tester 1", "kjasdhf9ia768927huisdaf9", 3));
-//        BlenderProjectInfo blenderInfo = new BlenderProjectInfo(true);
+        BlenderProjectInfo blenderInfo = new BlenderProjectInfo(true);
 //        BlenderProjectInfo blenderInfo = new BlenderProjectInfo(0, 10);
 //        blenderInfo.setFramesCompleted(5);
-//        JobRequest right_here = new JobRequest("kyang@eastsideprep.org", ProjectType.BlenderCycles, "Right_Here",
-//                blenderInfo);
-//        serverMeta.addToVerifyingQueue(right_here);
+        JobRequest right_here = new JobRequest("kyang@eastsideprep.org", ProjectType.BlenderEEVEE, "Right_Here",
+                blenderInfo);
+        serverMeta.addToVerifyingQueue(right_here);
 //        JobRequest create_edit_sequence = new JobRequest("kyang@eastsideprep.org", ProjectType.PremierePro, "create" +
 //                "-edit-sequence", null);
 //        serverMeta.addToVerifyingQueue(create_edit_sequence);
@@ -119,6 +119,8 @@ public class EPSRenderCore {
                                         refJob.getBlenderInfo().setEndFrame(inMessage.getData().getBlenderInfo().getEndFrame());
                                     }
 
+                                    refJob.getBlenderInfo().setFileName(inMessage.getData().getBlenderInfo().getFileName());
+
                                     refJob.setJobStatus(JobStatus.Queued);
                                     refJob.getBlenderInfo().setFramesCompleted(0);
                                     refJob.getBlenderInfo().clearRenderers();
@@ -129,8 +131,21 @@ public class EPSRenderCore {
 
                                     // ready to branch out to render que
                                     for (int frame = refJob.getBlenderInfo().getStartFrame(); frame <= refJob.getBlenderInfo().getEndFrame(); frame++) {
-                                        refJob.getBlenderInfo().setFrameNumber(frame);
-                                        serverMeta.addToBlenderQueue(refJob);
+                                        BlenderProjectInfo newJobBlender =
+                                                new BlenderProjectInfo(refJob.getBlenderInfo().getStartFrame(),
+                                                        refJob.getBlenderInfo().getEndFrame());
+                                        newJobBlender.setFrameNumber(frame);
+                                        newJobBlender.setFileName(refJob.getBlenderInfo().getFileName());
+
+                                        JobRequest newJob = new JobRequest(refJob.getUserEmail(),
+                                                refJob.getProjectType(), refJob.getProjectFolderName(), newJobBlender);
+                                        newJob.setJobStatus(JobStatus.Queued);
+                                        newJob.setVerified(true);
+
+                                        serverMeta.addToBlenderQueue(newJob);
+//                                        serverMeta.getBlenderQueue().forEach(jobRequest -> System.out.print
+//                                        (jobRequest.getBlenderInfo().getFrameNumber() + ", "));
+//                                        System.out.println("\n");
                                     }
 
                                     // reset node that did verifying
@@ -151,6 +166,38 @@ public class EPSRenderCore {
                                 handleVerifiedME(inMessage, refJob, refNode, "[After Effects Verify]:\tProject \"");
                                 break;
                             case RenderBlender:
+                                // get correct ref-job
+                                refJob =
+                                        serverMeta.getJobFromJobQueueWithName(inMessage.getData().getProjectFolderName());
+
+                                boolean stillWorking =
+                                        refJob.getBlenderInfo().getFramesCompleted() < (refJob.getBlenderInfo().getEndFrame() - refJob.getBlenderInfo().getStartFrame()) + 1;
+
+                                if (inMessage.getData().getVerified()) {
+                                    System.out.println("[Blender Render]:\t\"" + refJob.getProjectFolderName() + "\" " +
+                                            "Frame completed! " + refJob.getBlenderInfo().getFramesCompleted() + " / "
+                                            + ((refJob.getBlenderInfo().getEndFrame() - refJob.getBlenderInfo().getStartFrame()) + 1));
+                                    refJob.getBlenderInfo().addFramesCompleted();
+                                    refJob.getBlenderInfo().removeRenderers();
+                                    serverMeta.removeBlenderJobWithNameAndFrame(refJob.getProjectFolderName(),
+                                            inMessage.getData().getBlenderInfo().getFrameNumber());
+
+                                    if (!stillWorking) {
+                                        serverMeta.removeJobFromJobQueWithName(refJob.getProjectFolderName());
+                                    }
+                                } else {
+                                    System.out.println("[Blender Render]:\t\"" + inMessage.getData().getProjectFolderName() + "\" Render failed!");
+                                    serverMeta.removeJobFromJobQueWithName(refJob.getProjectFolderName());
+                                    serverMeta.removeBlenderJobWithName(refJob.getProjectFolderName());
+                                }
+
+                                refNode.setCurrentJob(null);
+                                refNode.setNodeStatus(NodeStatus.Ready);
+
+                                if (!stillWorking) {
+                                    mailResponse = sendMessage(inMessage.getData());
+                                    System.out.println("[Email Response]:\t" + mailResponse.toString());
+                                }
                                 break;
                             case RenderME:
                                 if (inMessage.getData().getVerified()) {
@@ -344,7 +391,8 @@ public class EPSRenderCore {
 
                 html += "<h2>Hello! This message is to let you know <u>\"" + job.getProjectFolderName() + "\"</u" +
                         "> has <u>successfully been rendered</u>!</h2>";
-                html += "<p>Your render is in the folder \"EPSRenderServerOutput\" located in your uploaded project folder.</p>";
+                html += "<p>Your render is in the folder \"EPSRenderServerOutput\" located in your uploaded project " +
+                        "folder.</p>";
 
                 tag = "Rendered ";
             } else {

@@ -56,8 +56,8 @@ public class Node {
             System.out.println("[Node " + nodeName + "]:\tRendering job " + jobFromJobQueue.getProjectFolderName());
 
             // set this as current job and set rendering
-            currentJob = jobFromJobQueue;
-            nodeStatus = NodeStatus.Rendering;
+            this.currentJob = jobFromJobQueue;
+            this.nodeStatus = NodeStatus.Rendering;
 
             ProjectType projectType = jobFromJobQueue.getProjectType();
             MessageType messageType;
