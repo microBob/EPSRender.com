@@ -4,6 +4,7 @@ import com.kyang.epsrender.Enums.JobStatus;
 import com.kyang.epsrender.Enums.NodeStatus;
 import com.kyang.epsrender.models.messages.JobRequest;
 import io.javalin.websocket.WsContext;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,70 +42,83 @@ public class Meta {
 
     public JobRequest getJobFromJobQueue() {
         synchronized (jobQueue) {
-            // check for necro
+//            System.out.println("Looking for job");
             if (!jobQueue.isEmpty()) {
+                // check for necro
+//                System.out.println("checking for necro");
+
                 JobRequest jobZero = jobQueue.get(0);
                 if (jobZero.getJobStatus().equals(JobStatus.Necro)) {
                     jobZero.setJobStatus(JobStatus.Rendering);
-                    jobQueue.set(0, jobZero);
+                    getJobQueue().set(0, jobZero);
                     return jobZero;
                 }
 
                 // check for active blender jobs
+//                System.out.println("Checking for already open blender");
                 JobRequest openBlenderJob =
                         jobQueue.stream().filter(jobRequest -> jobRequest.getBlenderInfo() != null &&
                                 jobRequest.getJobStatus().equals(JobStatus.Rendering) &&
                                 jobRequest.getBlenderInfo().getRenderers() == 0).findFirst().orElse(null);
-                int index = jobQueue.indexOf(openBlenderJob);
+//                int index = jobQueue.indexOf(openBlenderJob);
+//                JobRequest nextFrame = getNextFrameOfBlenderJob(openBlenderJob/*, index*/);
+//                if (nextFrame != null) return nextFrame;
                 if (openBlenderJob != null) {
+                    JobRequest nextFrame = getJobFromBlenderQueueWithName(openBlenderJob.getProjectFolderName());
+//            int frameIndex = getBlenderQueue().indexOf(nextFrame);
+                    nextFrame.setJobStatus(JobStatus.Rendering);
                     openBlenderJob.getBlenderInfo().addRenderers();
-                    jobQueue.set(index, openBlenderJob);
-                    return openBlenderJob;
+//            getJobQueue().set(index, openBlenderJob);
+//            getBlenderQueue().set(frameIndex, nextFrame);
+//                    System.out.println("Active next frame "+nextFrame.getBlenderInfo().getFrameNumber());
+                    return nextFrame;
                 }
+
                 // pick next job
+//                System.out.println("checking for new ME");
                 JobRequest openJob =
                         jobQueue.stream().filter(jobRequest -> isJobNotTakenByNode(jobRequest)).findFirst().orElse(null);
-                index = jobQueue.indexOf(openJob);
+//                index = jobQueue.indexOf(openJob);
                 if (openJob != null) {
-                    openJob.setJobStatus(JobStatus.Rendering);
-                    jobQueue.set(index, openJob);
-                    return openJob;
-                }
-                // pick next frame from active blender job
-                for (JobRequest blenderJob :
-                        jobQueue.stream().filter(jobRequest -> jobRequest.getBlenderInfo() != null && jobRequest.getJobStatus().equals(JobStatus.Rendering)).collect(Collectors.toList())) {
-                    index = jobQueue.indexOf(blenderJob);
-                    List<JobRequest> frames =
-                            getBlenderQueue().stream().filter(blenderFrame -> blenderFrame.getProjectFolderName().equals(blenderJob.getProjectFolderName())).collect(Collectors.toList());
-
-                    JobRequest openFrame =
-                            frames.stream().filter(frame -> isJobNotTakenByNode(frame)).findFirst().orElse(null);
-                    int frameIndex = getBlenderQueue().indexOf(openFrame);
-                    if (openFrame != null) {
-                        openFrame.setJobStatus(JobStatus.Rendering);
-                        blenderJob.getBlenderInfo().addRenderers();
-
-                        jobQueue.set(index, blenderJob);
-                        getBlenderQueue().set(frameIndex, openFrame);
-
-                        return openFrame;
+                    // pick next frame from active blender job
+                    if (openJob.getBlenderInfo() != null) {
+                        JobRequest nextFrame = getJobFromBlenderQueueWithName(openJob.getProjectFolderName());
+//            int frameIndex = getBlenderQueue().indexOf(nextFrame);
+                        if (nextFrame != null) {
+                            nextFrame.setJobStatus(JobStatus.Rendering);
+                            openJob.getBlenderInfo().addRenderers();
+                        }
+//            getJobQueue().set(index, openBlenderJob);
+//            getBlenderQueue().set(frameIndex, nextFrame);
+//                    System.out.println("Passive next frame "+nextFrame.getBlenderInfo().getFrameNumber());
+                        return nextFrame;
                     }
+                    openJob.setJobStatus(JobStatus.Rendering);
+//                    jobQueue.set(index, openJob);
+                    return openJob;
                 }
             }
             return null;
         }
     }
 
+    public JobRequest getJobFromJobQueueWithName(String folderName) {
+        synchronized (jobQueue) {
+            return this.jobQueue.stream().filter(jobRequest -> jobRequest.getProjectFolderName().equals(folderName)).findFirst().orElse(null);
+        }
+    }
+
     public void removeJobFromJobQueWithName(String folderName) {
         synchronized (jobQueue) {
-            jobQueue.removeIf(jobRequest -> jobRequest.getProjectFolderName().equals(folderName));
+            this.jobQueue.removeIf(jobRequest -> jobRequest.getProjectFolderName().equals(folderName));
         }
     }
 
     // SECTION: Verifying Queue
+
     public ArrayList<JobRequest> getVerifyingQueue() {
         synchronized (verifyingQueue) {
-            return verifyingQueue;
+            return this.verifyingQueue;
         }
     }
 
@@ -116,27 +130,48 @@ public class Meta {
 
     public JobRequest getJobFromVerifyingQueue() {
         synchronized (verifyingQueue) {
-            return verifyingQueue.stream().filter(jobRequest -> isJobNotTakenByNode(jobRequest)).findFirst().orElse(null);
+            return this.verifyingQueue.stream().filter(jobRequest -> isJobNotTakenByNode(jobRequest)).findFirst().orElse(null);
         }
     }
 
     public JobRequest getJobFromVerifyingQueueWithName(String folderName) {
         synchronized (verifyingQueue) {
-            return verifyingQueue.stream().filter(jobRequest -> folderName.equals(jobRequest.getProjectFolderName())).findFirst().orElse(null);
+            return this.verifyingQueue.stream().filter(jobRequest -> folderName.equals(jobRequest.getProjectFolderName())).findFirst().orElse(null);
         }
     }
 
     public void removeJobFromVerifyingQueueWithName(String folderName) {
         synchronized (verifyingQueue) {
-            verifyingQueue.removeIf(jobRequest -> jobRequest.getProjectFolderName().equals(folderName));
+            this.verifyingQueue.removeIf(jobRequest -> jobRequest.getProjectFolderName().equals(folderName));
         }
     }
 
     // SECTION: Blender Queue
+
     public ArrayList<JobRequest> getBlenderQueue() {
         synchronized (blenderQueue) {
-            return blenderQueue;
+            return this.blenderQueue;
         }
+    }
+
+    public JobRequest getJobFromBlenderQueueWithName(String folderName) {
+        synchronized (blenderQueue) {
+            return this.blenderQueue.stream().filter(jobRequest -> jobRequest.getProjectFolderName().equals(folderName) && isJobNotTakenByNode(jobRequest)).findFirst().orElse(null);
+        }
+    }
+
+    @Nullable
+    private JobRequest getNextFrameOfBlenderJob(JobRequest openBlenderJob/*, int index*/) {
+        if (openBlenderJob != null) {
+            JobRequest nextFrame = getJobFromBlenderQueueWithName(openBlenderJob.getProjectFolderName());
+//            int frameIndex = getBlenderQueue().indexOf(nextFrame);
+            nextFrame.setJobStatus(JobStatus.Rendering);
+            openBlenderJob.getBlenderInfo().addRenderers();
+//            getJobQueue().set(index, openBlenderJob);
+//            getBlenderQueue().set(frameIndex, nextFrame);
+            return nextFrame;
+        }
+        return null;
     }
 
     public void addToBlenderQueue(JobRequest jobRequest) {
@@ -145,9 +180,15 @@ public class Meta {
         }
     }
 
-    public void removeBlenderJob(JobRequest blenderJob) {
+    public void removeBlenderJobWithNameAndFrame(String folderName, int frame) {
         synchronized (blenderQueue) {
-            this.blenderQueue.remove(blenderJob);
+            this.blenderQueue.removeIf(jobRequest -> jobRequest.getProjectFolderName().equals(folderName) && jobRequest.getBlenderInfo().getFrameNumber() == frame);
+        }
+    }
+
+    public void removeBlenderJobWithName(String folderName) {
+        synchronized (blenderQueue) {
+            this.blenderQueue.removeIf(jobRequest -> jobRequest.getProjectFolderName().equals(folderName));
         }
     }
 
