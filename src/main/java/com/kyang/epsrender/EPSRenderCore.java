@@ -17,6 +17,10 @@ import io.javalin.Javalin;
 import io.javalin.http.Context;
 
 import java.util.Objects;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class EPSRenderCore {
 
@@ -34,7 +38,7 @@ public class EPSRenderCore {
         app.get("/test", ctx -> ctx.result("Test again"));
 
 
-        // SECTION: demo items
+        // SECTION: Demo items
 //        serverMeta.addServerNode(new Node("Tester 1", "kjasdhf9ia768927huisdaf9", 3));
         BlenderProjectInfo blenderInfo = new BlenderProjectInfo(true);
 //        BlenderProjectInfo blenderInfo = new BlenderProjectInfo(0, 10);
@@ -45,9 +49,19 @@ public class EPSRenderCore {
 //        JobRequest create_edit_sequence = new JobRequest("kyang@eastsideprep.org", ProjectType.PremierePro, "create" +
 //                "-edit-sequence", null);
 //        serverMeta.addToVerifyingQueue(create_edit_sequence);
+        // SECTION ^: Demo items
 
+        // SECTION: node ping
+        ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
+        Runnable pingTask = () -> {
+            for (Node n : serverMeta.getAliveNodes()) {
+                serverMeta.getCtxIdHash().get(n.getCtxSessionID()).send("KeepAlive");
+            }
+        };
+        executorService.scheduleAtFixedRate(pingTask, 55, 55, TimeUnit.SECONDS);
+        // SECTION ^: node ping
 
-        // SECTION: Open communication
+        // SECTION: Communication
         app.ws("/communication", ws -> {
             ws.onConnect(ctx -> {
                 System.out.println("[WS Connection]:\t" + ctx.getSessionId());
@@ -79,155 +93,158 @@ public class EPSRenderCore {
             ws.onMessage(ctx -> {
                 System.out.println("[WS Message]:\t" + ctx.message());
 
-                if (ctx.message().contains("{\"ctxSessionID\"")) { // check if it's a new node handshake
-                    try {
-                        // try to read the handshake
-                        NodeHandshakeInfo handshakeInfo = mapper.readValue(ctx.message(), NodeHandshakeInfo.class);
+                if (!ctx.message().equals("StayingAlive")) {
+                    if (ctx.message().contains("{\"ctxSessionID\"")) { // check if it's a new node handshake
+                        try {
+                            // try to read the handshake
+                            NodeHandshakeInfo handshakeInfo = mapper.readValue(ctx.message(), NodeHandshakeInfo.class);
 
-                        // try to grab a node with name (check for preexistence)
-                        Node preExisting = serverMeta.getServerNodeWithName(handshakeInfo.getNodeName());
-                        if (preExisting != null) { // it's a returning node (by name)
-                            System.out.println("[Returning Node]:\t" + preExisting.getNodeName());
-                            serverMeta.getCtxIdHash().remove(preExisting.getCtxSessionID());
-                            preExisting.setCtxSessionID(handshakeInfo.getCtxSessionID());
-                            preExisting.setNodeStatus(NodeStatus.Ready);
-                        } else { // brand new node? create a new node and register
-                            Node newNode = new Node(handshakeInfo.getNodeName(), handshakeInfo.getCtxSessionID(),
-                                    handshakeInfo.getPowerIndex());
-                            serverMeta.addServerNode(newNode);
-                            System.out.println("[New Node]:\t" + newNode.getNodeName() + "!");
+                            // try to grab a node with name (check for preexistence)
+                            Node preExisting = serverMeta.getServerNodeWithName(handshakeInfo.getNodeName());
+                            if (preExisting != null) { // it's a returning node (by name)
+                                System.out.println("[Returning Node]:\t" + preExisting.getNodeName());
+                                serverMeta.getCtxIdHash().remove(preExisting.getCtxSessionID());
+                                preExisting.setCtxSessionID(handshakeInfo.getCtxSessionID());
+                                preExisting.setNodeStatus(NodeStatus.Ready);
+                            } else { // brand new node? create a new node and register
+                                Node newNode = new Node(handshakeInfo.getNodeName(), handshakeInfo.getCtxSessionID(),
+                                        handshakeInfo.getPowerIndex());
+                                serverMeta.addServerNode(newNode);
+                                System.out.println("[New Node]:\t" + newNode.getNodeName() + "!");
+                            }
+                        } catch (Error error) { // wot
+                            System.out.println("[WS Message Error]:\t" + error.getMessage());
                         }
-                    } catch (Error error) { // wot
-                        System.out.println("[WS Message Error]:\t" + error.getMessage());
-                    }
-                } else { // more typically, it's a job message
-                    try {
-                        Message inMessage = mapper.readValue(ctx.message(), Message.class);
-                        JobRequest refJob =
-                                serverMeta.getJobFromVerifyingQueueWithName(inMessage.getData().getProjectFolderName());
-                        Node refNode = serverMeta.getServerNodeWithID(ctx.getSessionId());
+                    } else { // more typically, it's a job message
+                        try {
+                            Message inMessage = mapper.readValue(ctx.message(), Message.class);
+                            JobRequest refJob =
+                                    serverMeta.getJobFromVerifyingQueueWithName(inMessage.getData().getProjectFolderName());
+                            Node refNode = serverMeta.getServerNodeWithID(ctx.getSessionId());
 
-                        switch (inMessage.getType()) {
-                            case VerifyBlender: // returned a verified blender job
-                                if (inMessage.getData().getVerified()) { // and it's good
-                                    System.out.println("[Blender Verify]:\tProject " + inMessage.getData().getProjectFolderName() + " Verified!");
+                            switch (inMessage.getType()) {
+                                case VerifyBlender: // returned a verified blender job
+                                    if (inMessage.getData().getVerified()) { // and it's good
+                                        System.out.println("[Blender Verify]:\tProject " + inMessage.getData().getProjectFolderName() + " Verified!");
 
-                                    // update info
-                                    refJob.setVerified(true);
-                                    if (refJob.getBlenderInfo().getUseAllFrames()) {
-                                        refJob.getBlenderInfo().setStartFrame(inMessage.getData().getBlenderInfo().getStartFrame());
-                                        refJob.getBlenderInfo().setEndFrame(inMessage.getData().getBlenderInfo().getEndFrame());
-                                    }
+                                        // update info
+                                        refJob.setVerified(true);
+                                        if (refJob.getBlenderInfo().getUseAllFrames()) {
+                                            refJob.getBlenderInfo().setStartFrame(inMessage.getData().getBlenderInfo().getStartFrame());
+                                            refJob.getBlenderInfo().setEndFrame(inMessage.getData().getBlenderInfo().getEndFrame());
+                                        }
 
-                                    refJob.getBlenderInfo().setFileName(inMessage.getData().getBlenderInfo().getFileName());
+                                        refJob.getBlenderInfo().setFileName(inMessage.getData().getBlenderInfo().getFileName());
 
-                                    refJob.setJobStatus(JobStatus.Queued);
-                                    refJob.getBlenderInfo().setFramesCompleted(0);
-                                    refJob.getBlenderInfo().clearRenderers();
+                                        refJob.setJobStatus(JobStatus.Queued);
+                                        refJob.getBlenderInfo().setFramesCompleted(0);
+                                        refJob.getBlenderInfo().clearRenderers();
 
-                                    // add to Job Queue and remove from verify
-                                    serverMeta.addToJobQueue(refJob);
-                                    serverMeta.removeJobFromVerifyingQueueWithName(refJob.getProjectFolderName());
+                                        // add to Job Queue and remove from verify
+                                        serverMeta.addToJobQueue(refJob);
+                                        serverMeta.removeJobFromVerifyingQueueWithName(refJob.getProjectFolderName());
 
-                                    // ready to branch out to render que
-                                    for (int frame = refJob.getBlenderInfo().getStartFrame(); frame <= refJob.getBlenderInfo().getEndFrame(); frame++) {
-                                        BlenderProjectInfo newJobBlender =
-                                                new BlenderProjectInfo(refJob.getBlenderInfo().getStartFrame(),
-                                                        refJob.getBlenderInfo().getEndFrame());
-                                        newJobBlender.setFrameNumber(frame);
-                                        newJobBlender.setFileName(refJob.getBlenderInfo().getFileName());
+                                        // ready to branch out to render que
+                                        for (int frame = refJob.getBlenderInfo().getStartFrame(); frame <= refJob.getBlenderInfo().getEndFrame(); frame++) {
+                                            BlenderProjectInfo newJobBlender =
+                                                    new BlenderProjectInfo(refJob.getBlenderInfo().getStartFrame(),
+                                                            refJob.getBlenderInfo().getEndFrame());
+                                            newJobBlender.setFrameNumber(frame);
+                                            newJobBlender.setFileName(refJob.getBlenderInfo().getFileName());
 
-                                        JobRequest newJob = new JobRequest(refJob.getUserEmail(),
-                                                refJob.getProjectType(), refJob.getProjectFolderName(), newJobBlender);
-                                        newJob.setJobStatus(JobStatus.Queued);
-                                        newJob.setVerified(true);
+                                            JobRequest newJob = new JobRequest(refJob.getUserEmail(),
+                                                    refJob.getProjectType(), refJob.getProjectFolderName(), newJobBlender);
+                                            newJob.setJobStatus(JobStatus.Queued);
+                                            newJob.setVerified(true);
 
-                                        serverMeta.addToBlenderQueue(newJob);
+                                            serverMeta.addToBlenderQueue(newJob);
 //                                        serverMeta.getBlenderQueue().forEach(jobRequest -> System.out.print
 //                                        (jobRequest.getBlenderInfo().getFrameNumber() + ", "));
 //                                        System.out.println("\n");
+                                        }
+
+                                        // reset node that did verifying
+                                        refNode.setCurrentJob(null);
+                                        refNode.setNodeStatus(NodeStatus.Ready);
+                                    } else { // and it's not
+                                        System.out.println("[Blender Verify]:\tProject \"" + inMessage.getData().getProjectFolderName() + "\" Failed!");
                                     }
 
-                                    // reset node that did verifying
+                                    JsonNode mailResponse = sendMessage(inMessage.getData());
+
+                                    System.out.println("[Email Response]:\t" + mailResponse.toString());
+                                    break;
+                                case VerifyPremiere:
+                                    handleVerifiedME(inMessage, refJob, refNode, "[Premiere Verify]:\tProject \"");
+                                    break;
+                                case VerifyAE:
+                                    handleVerifiedME(inMessage, refJob, refNode, "[After Effects Verify]:\tProject \"");
+                                    break;
+                                case RenderBlender:
+                                    // get correct ref-job
+                                    refJob =
+                                            serverMeta.getJobFromJobQueueWithName(inMessage.getData().getProjectFolderName());
+
+                                    boolean stillWorking =
+                                            refJob.getBlenderInfo().getFramesCompleted() < (refJob.getBlenderInfo().getEndFrame() - refJob.getBlenderInfo().getStartFrame()) + 1;
+
+                                    if (inMessage.getData().getVerified()) {
+                                        System.out.println("[Blender Render]:\t\"" + refJob.getProjectFolderName() + "\" " +
+                                                "Frame completed! " + refJob.getBlenderInfo().getFramesCompleted() + " / "
+                                                + ((refJob.getBlenderInfo().getEndFrame() - refJob.getBlenderInfo().getStartFrame()) + 1));
+                                        refJob.getBlenderInfo().addFramesCompleted();
+                                        refJob.getBlenderInfo().removeRenderers();
+                                        serverMeta.removeBlenderJobWithNameAndFrame(refJob.getProjectFolderName(),
+                                                inMessage.getData().getBlenderInfo().getFrameNumber());
+
+                                        if (!stillWorking) {
+                                            serverMeta.removeJobFromJobQueWithName(refJob.getProjectFolderName());
+                                        }
+                                    } else {
+                                        System.out.println("[Blender Render]:\t\"" + inMessage.getData().getProjectFolderName() + "\" Render failed!");
+                                        serverMeta.removeJobFromJobQueWithName(refJob.getProjectFolderName());
+                                        serverMeta.removeBlenderJobWithName(refJob.getProjectFolderName());
+                                    }
+
                                     refNode.setCurrentJob(null);
                                     refNode.setNodeStatus(NodeStatus.Ready);
-                                } else { // and it's not
-                                    System.out.println("[Blender Verify]:\tProject \"" + inMessage.getData().getProjectFolderName() + "\" Failed!");
-                                }
-
-                                JsonNode mailResponse = sendMessage(inMessage.getData());
-
-                                System.out.println("[Email Response]:\t" + mailResponse.toString());
-                                break;
-                            case VerifyPremiere:
-                                handleVerifiedME(inMessage, refJob, refNode, "[Premiere Verify]:\tProject \"");
-                                break;
-                            case VerifyAE:
-                                handleVerifiedME(inMessage, refJob, refNode, "[After Effects Verify]:\tProject \"");
-                                break;
-                            case RenderBlender:
-                                // get correct ref-job
-                                refJob =
-                                        serverMeta.getJobFromJobQueueWithName(inMessage.getData().getProjectFolderName());
-
-                                boolean stillWorking =
-                                        refJob.getBlenderInfo().getFramesCompleted() < (refJob.getBlenderInfo().getEndFrame() - refJob.getBlenderInfo().getStartFrame()) + 1;
-
-                                if (inMessage.getData().getVerified()) {
-                                    System.out.println("[Blender Render]:\t\"" + refJob.getProjectFolderName() + "\" " +
-                                            "Frame completed! " + refJob.getBlenderInfo().getFramesCompleted() + " / "
-                                            + ((refJob.getBlenderInfo().getEndFrame() - refJob.getBlenderInfo().getStartFrame()) + 1));
-                                    refJob.getBlenderInfo().addFramesCompleted();
-                                    refJob.getBlenderInfo().removeRenderers();
-                                    serverMeta.removeBlenderJobWithNameAndFrame(refJob.getProjectFolderName(),
-                                            inMessage.getData().getBlenderInfo().getFrameNumber());
 
                                     if (!stillWorking) {
-                                        serverMeta.removeJobFromJobQueWithName(refJob.getProjectFolderName());
+                                        mailResponse = sendMessage(inMessage.getData());
+                                        System.out.println("[Email Response]:\t" + mailResponse.toString());
                                     }
-                                } else {
-                                    System.out.println("[Blender Render]:\t\"" + inMessage.getData().getProjectFolderName() + "\" Render failed!");
-                                    serverMeta.removeJobFromJobQueWithName(refJob.getProjectFolderName());
-                                    serverMeta.removeBlenderJobWithName(refJob.getProjectFolderName());
-                                }
+                                    break;
+                                case RenderME:
+                                    if (inMessage.getData().getVerified()) {
+                                        System.out.println("[ME Render]:\t\"" + inMessage.getData().getProjectFolderName() + "\" Completed!");
+                                    } else {
+                                        System.out.println("[ME Render]:\t\"" + inMessage.getData().getProjectFolderName() + "\" Failed!");
+                                    }
 
-                                refNode.setCurrentJob(null);
-                                refNode.setNodeStatus(NodeStatus.Ready);
+                                    // remove job from queue
+                                    serverMeta.removeJobFromJobQueWithName(inMessage.getData().getProjectFolderName());
 
-                                if (!stillWorking) {
+                                    // reset node
+                                    refNode.setCurrentJob(null);
+                                    refNode.setNodeStatus(NodeStatus.Ready);
+
                                     mailResponse = sendMessage(inMessage.getData());
                                     System.out.println("[Email Response]:\t" + mailResponse.toString());
-                                }
-                                break;
-                            case RenderME:
-                                if (inMessage.getData().getVerified()) {
-                                    System.out.println("[ME Render]:\t\"" + inMessage.getData().getProjectFolderName() + "\" Completed!");
-                                } else {
-                                    System.out.println("[ME Render]:\t\"" + inMessage.getData().getProjectFolderName() + "\" Failed!");
-                                }
-
-                                // remove job from queue
-                                serverMeta.removeJobFromJobQueWithName(inMessage.getData().getProjectFolderName());
-
-                                // reset node
-                                refNode.setCurrentJob(null);
-                                refNode.setNodeStatus(NodeStatus.Ready);
-
-                                mailResponse = sendMessage(inMessage.getData());
-                                System.out.println("[Email Response]:\t" + mailResponse.toString());
-                                break;
-                            default:
-                                System.out.println("[Message Parsing Error]:\tUnknown type " + inMessage.getType().toString());
-                                break;
+                                    break;
+                                default:
+                                    System.out.println("[Message Parsing Error]:\tUnknown type " + inMessage.getType().toString());
+                                    break;
+                            }
+                        } catch (Error error) {
+                            System.out.println("[WS Message Error]:\t" + error.getMessage());
                         }
-                    } catch (Error error) {
-                        System.out.println("[WS Message Error]:\t" + error.getMessage());
                     }
-                }
 
-                InitNextJob();
+                    InitNextJob();
+                }
             });
         });
+        // SECTION ^: Communication
 
 
         //SECTION: Login
