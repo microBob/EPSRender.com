@@ -214,7 +214,13 @@ public class Meta {
 
     public Node getReadyServerNode() {
         synchronized (serverNodes) {
-            return getServerNodes().stream().filter(node -> node.getNodeStatus().equals(NodeStatus.Ready)).findFirst().orElse(null);
+            return serverNodes.stream().filter(node -> node.getNodeStatus().equals(NodeStatus.Ready)).findFirst().orElse(null);
+        }
+    }
+
+    public List<Node> getAliveNodes() {
+        synchronized (serverNodes) {
+            return serverNodes.stream().filter(node -> !node.getNodeStatus().equals(NodeStatus.Offline)).collect(Collectors.toList());
         }
     }
 
