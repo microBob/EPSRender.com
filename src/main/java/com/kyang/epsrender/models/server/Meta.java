@@ -28,6 +28,18 @@ public class Meta {
         }
     }
 
+    public List<JobRequest> getQueuedJobs() {
+        synchronized (jobQueue) {
+            return jobQueue.stream().filter(jobRequest -> jobRequest.getJobStatus().equals(JobStatus.Queued)).collect(Collectors.toList());
+        }
+    }
+
+    public List<JobRequest> getRenderingJobs() {
+        synchronized (jobQueue) {
+            return jobQueue.stream().filter(jobRequest -> jobRequest.getJobStatus().equals(JobStatus.Rendering)).collect(Collectors.toList());
+        }
+    }
+
     public void addToJobQueue(JobRequest jobRequest) {
         synchronized (jobQueue) {
             this.jobQueue.add(jobRequest);
@@ -44,6 +56,7 @@ public class Meta {
         synchronized (jobQueue) {
 //            System.out.println("Looking for job");
             if (!jobQueue.isEmpty()) {
+                System.out.println("[Job Status]:\t"+jobQueue.get(0).getJobStatus().toString());
                 // check for necro
 //                System.out.println("checking for necro");
 
@@ -77,7 +90,7 @@ public class Meta {
                 // pick next job
 //                System.out.println("checking for new ME");
                 JobRequest openJob =
-                        jobQueue.stream().filter(jobRequest -> isJobNotTakenByNode(jobRequest)).findFirst().orElse(null);
+                        jobQueue.stream().filter(this::isJobNotTakenByNode).findFirst().orElse(null);
 //                index = jobQueue.indexOf(openJob);
                 if (openJob != null) {
                     // pick next frame from active blender job
@@ -91,9 +104,9 @@ public class Meta {
 //            getJobQueue().set(index, openBlenderJob);
 //            getBlenderQueue().set(frameIndex, nextFrame);
 //                    System.out.println("Passive next frame "+nextFrame.getBlenderInfo().getFrameNumber());
+                        getJobFromJobQueueWithName(openJob.getProjectFolderName()).setJobStatus(JobStatus.Rendering);
                         return nextFrame;
                     }
-                    openJob.setJobStatus(JobStatus.Rendering);
 //                    jobQueue.set(index, openJob);
                     return openJob;
                 }
@@ -130,7 +143,7 @@ public class Meta {
 
     public JobRequest getJobFromVerifyingQueue() {
         synchronized (verifyingQueue) {
-            return this.verifyingQueue.stream().filter(jobRequest -> isJobNotTakenByNode(jobRequest)).findFirst().orElse(null);
+            return this.verifyingQueue.stream().filter(this::isJobNotTakenByNode).findFirst().orElse(null);
         }
     }
 

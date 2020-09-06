@@ -1,5 +1,6 @@
 package com.kyang.epsrender.models.messages;
 
+import com.kyang.epsrender.EPSRenderCore;
 import com.kyang.epsrender.Enums.JobStatus;
 import com.kyang.epsrender.Enums.ProjectType;
 import com.kyang.epsrender.models.server.Node;
@@ -14,7 +15,8 @@ public class StatusUpdateInfo {
 
 
     // SECTION: Constructors
-    public StatusUpdateInfo(ArrayList<JobRequest> jobQueue, ArrayList<JobRequest> verifyingQueue, ArrayList<Node> nodes) {
+    public StatusUpdateInfo(ArrayList<JobRequest> jobQueue, ArrayList<JobRequest> verifyingQueue,
+                            ArrayList<Node> nodes) {
         String rowClosing = "</td></tr>";
 
         //// merge in verifying -> rendering -> queued
@@ -27,33 +29,32 @@ public class StatusUpdateInfo {
             this.jobQueue.add(row);
         }
         //merge in rendering
-        for (JobRequest jr : jobQueue) {
-            if (jr.getJobStatus().equals(JobStatus.Rendering)) {
-                String row = jobQueueRowStarter(jr, JobStatus.Rendering);
-                // change display type if blender
-                if (jr.getProjectType().equals(ProjectType.BlenderCycles) || jr.getProjectType().equals(ProjectType.BlenderEEVEE)) {
-                    row += jr.getBlenderInfo().getFramesCompleted();
-                    row += " / ";
-                    row += Integer.toString(jr.getBlenderInfo().getEndFrame() - jr.getBlenderInfo().getStartFrame() + 1);
-                    row += " Rendered";
-                } else {
-                    row += "Rendering";
-                }
-                row += rowClosing;
-                this.jobQueue.add(row);
+        for (JobRequest jr : EPSRenderCore.getServerMeta().getRenderingJobs()) {
+            String row = jobQueueRowStarter(jr, JobStatus.Rendering);
+            System.out.println("===Job is rendering===");
+            // change display type if blender
+            if (jr.getBlenderInfo() != null) {
+                System.out.println("Blender rendering");
+                row += jr.getBlenderInfo().getFramesCompleted();
+                row += " / ";
+                row += (jr.getBlenderInfo().getEndFrame() - jr.getBlenderInfo().getStartFrame()) + 1;
+                row += " Rendered";
+            } else {
+                row += "Rendering";
             }
+            row += rowClosing;
+            this.jobQueue.add(row);
         }
         // merge in queued
         int placeInQueue = 1;
-        for (JobRequest jr : jobQueue) {
-            if (jr.getJobStatus().equals(JobStatus.Queued)) {
-                String row = jobQueueRowStarter(jr, JobStatus.Queued);
-                row += "Place <strong>" + placeInQueue + "</strong> in Queue";
-                row += rowClosing;
+        for (JobRequest jr : EPSRenderCore.getServerMeta().getQueuedJobs()) {
+            System.out.println("===Job is queued===");
+            String row = jobQueueRowStarter(jr, JobStatus.Queued);
+            row += "Place <strong>" + placeInQueue + "</strong> in Queue";
+            row += rowClosing;
 
-                placeInQueue++;
-                this.jobQueue.add(row);
-            }
+            placeInQueue++;
+            this.jobQueue.add(row);
         }
 
         for (Node n : nodes) {
