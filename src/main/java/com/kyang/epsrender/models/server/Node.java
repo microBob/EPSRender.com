@@ -1,10 +1,7 @@
 package com.kyang.epsrender.models.server;
 
 import com.kyang.epsrender.EPSRenderCore;
-import com.kyang.epsrender.Enums.MessageType;
-import com.kyang.epsrender.Enums.NodeStatus;
-import com.kyang.epsrender.Enums.PowerIndex;
-import com.kyang.epsrender.Enums.ProjectType;
+import com.kyang.epsrender.Enums.*;
 import com.kyang.epsrender.models.messages.JobRequest;
 import com.kyang.epsrender.models.messages.Message;
 import com.kyang.epsrender.models.server.Meta;
@@ -41,8 +38,8 @@ public class Node {
             System.out.println("[Node " + nodeName + "]:\tVerifying job " + jobFromVerifyingQueue.getProjectFolderName());
 
             // set this as current job and set rendering
-            currentJob = jobFromVerifyingQueue;
-            nodeStatus = NodeStatus.Rendering;
+            this.currentJob = jobFromVerifyingQueue;
+            this.nodeStatus = NodeStatus.Rendering;
 
             ProjectType projectType = jobFromVerifyingQueue.getProjectType();
             return new Message(projectType.equals(ProjectType.PremierePro) ? MessageType.VerifyPremiere :

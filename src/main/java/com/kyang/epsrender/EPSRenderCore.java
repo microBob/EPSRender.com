@@ -58,7 +58,7 @@ public class EPSRenderCore {
                 serverMeta.getCtxIdHash().get(n.getCtxSessionID()).send("KeepAlive");
             }
         };
-        executorService.scheduleAtFixedRate(pingTask, 55, 55, TimeUnit.SECONDS);
+        executorService.scheduleAtFixedRate(pingTask, 0, 55, TimeUnit.SECONDS);
         // SECTION ^: node ping
 
         // SECTION: Communication
@@ -88,6 +88,7 @@ public class EPSRenderCore {
                     currentJob.setJobStatus(JobStatus.Necro);
                     serverMeta.addToJobQueueBeginning(currentJob);
                     disNode.setCurrentJob(null);
+                    InitNextJob();
                 }
             });
             ws.onMessage(ctx -> {
@@ -153,7 +154,8 @@ public class EPSRenderCore {
                                             newJobBlender.setFileName(refJob.getBlenderInfo().getFileName());
 
                                             JobRequest newJob = new JobRequest(refJob.getUserEmail(),
-                                                    refJob.getProjectType(), refJob.getProjectFolderName(), newJobBlender);
+                                                    refJob.getProjectType(), refJob.getProjectFolderName(),
+                                                    newJobBlender);
                                             newJob.setJobStatus(JobStatus.Queued);
                                             newJob.setVerified(true);
 
@@ -185,21 +187,20 @@ public class EPSRenderCore {
                                     refJob =
                                             serverMeta.getJobFromJobQueueWithName(inMessage.getData().getProjectFolderName());
 
-                                    boolean stillWorking =
-                                            refJob.getBlenderInfo().getFramesCompleted() < (refJob.getBlenderInfo().getEndFrame() - refJob.getBlenderInfo().getStartFrame()) + 1;
+                                    boolean stillWorking = true;
 
                                     if (inMessage.getData().getVerified()) {
-                                        System.out.println("[Blender Render]:\t\"" + refJob.getProjectFolderName() + "\" " +
-                                                "Frame completed! " + refJob.getBlenderInfo().getFramesCompleted() + " / "
+                                        System.out.println("[Blender Render]:\t\"" + refJob.getProjectFolderName() +
+                                                "\" " +
+                                                "Frame completed! " + (refJob.getBlenderInfo().getFramesCompleted() + 1) + " / "
                                                 + ((refJob.getBlenderInfo().getEndFrame() - refJob.getBlenderInfo().getStartFrame()) + 1));
                                         refJob.getBlenderInfo().addFramesCompleted();
                                         refJob.getBlenderInfo().removeRenderers();
                                         serverMeta.removeBlenderJobWithNameAndFrame(refJob.getProjectFolderName(),
                                                 inMessage.getData().getBlenderInfo().getFrameNumber());
 
-                                        if (!stillWorking) {
-                                            serverMeta.removeJobFromJobQueWithName(refJob.getProjectFolderName());
-                                        }
+                                        stillWorking =
+                                                refJob.getBlenderInfo().getFramesCompleted() < (refJob.getBlenderInfo().getEndFrame() - refJob.getBlenderInfo().getStartFrame()) + 1;
                                     } else {
                                         System.out.println("[Blender Render]:\t\"" + inMessage.getData().getProjectFolderName() + "\" Render failed!");
                                         serverMeta.removeJobFromJobQueWithName(refJob.getProjectFolderName());
@@ -210,6 +211,7 @@ public class EPSRenderCore {
                                     refNode.setNodeStatus(NodeStatus.Ready);
 
                                     if (!stillWorking) {
+                                        serverMeta.removeJobFromJobQueWithName(refJob.getProjectFolderName());
                                         mailResponse = sendMessage(inMessage.getData());
                                         System.out.println("[Email Response]:\t" + mailResponse.toString());
                                     }
