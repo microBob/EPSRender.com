@@ -1,7 +1,6 @@
 package com.kyang.epsrender.models.messages;
 
 import com.kyang.epsrender.Enums.MessageType;
-import com.kyang.epsrender.models.messages.JobRequest;
 
 public class Message {
     private MessageType type;
@@ -27,7 +26,7 @@ public class Message {
         return data;
     }
 
-    public void setData(JobRequest  data) {
+    public void setData(JobRequest data) {
         this.data = data;
     }
 }

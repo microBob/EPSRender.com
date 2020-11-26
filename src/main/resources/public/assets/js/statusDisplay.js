@@ -20,8 +20,6 @@ function updateStatusBtn() {
     updateStatusInternal(function (newInfo) {
         // Implement updating tables with new data
         try {
-            // const newServerInfo = Object.assign(new StatusUpdateInfo(), newInfo);
-
             console.log(newInfo.jobQueue);
 
             let $jobQueueTableBody = $("#job-queue-table tbody");

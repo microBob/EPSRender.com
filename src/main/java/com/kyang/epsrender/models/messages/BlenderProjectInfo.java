@@ -1,7 +1,7 @@
 package com.kyang.epsrender.models.messages;
 
 public class BlenderProjectInfo {
-    // SECTION: Properties
+    //// SECTION: Properties
     private int startFrame;
     private int endFrame;
     private boolean useAllFrames;
@@ -9,9 +9,10 @@ public class BlenderProjectInfo {
     private int frameNumber;
     private int framesCompleted;
     private int renderers;
+    //// SECTION ^: Properties
 
 
-    // SECTION: Constructors
+    //// SECTION: Constructors
     public BlenderProjectInfo(int start, int end) {
         this.startFrame = start;
         this.endFrame = end;
@@ -23,9 +24,10 @@ public class BlenderProjectInfo {
 
     public BlenderProjectInfo() {
     }
+    //// SECTION ^: Constructors
 
 
-    // SECTION: Getters and setters
+    //// SECTION: Getters and setters
     public int getStartFrame() {
         return startFrame;
     }
@@ -93,4 +95,5 @@ public class BlenderProjectInfo {
     public void removeRenderers() {
         this.renderers--;
     }
+    //// SECTION ^: Getters and setters
 }

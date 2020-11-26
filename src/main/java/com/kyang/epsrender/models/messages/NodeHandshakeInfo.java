@@ -3,13 +3,14 @@ package com.kyang.epsrender.models.messages;
 import com.kyang.epsrender.Enums.PowerIndex;
 
 public class NodeHandshakeInfo {
-    // SECTION: Properties
+    //// SECTION: Properties
     private String ctxSessionID;
     private String nodeName;
     private PowerIndex powerIndex;
+    //// SECTION ^: Properties
 
 
-    // SECTION: Constructors
+    //// SECTION: Constructors
     public NodeHandshakeInfo(String ctxSessionID, String nodeName, PowerIndex powerIndex) {
         this.ctxSessionID = ctxSessionID;
         this.nodeName = nodeName;
@@ -18,8 +19,10 @@ public class NodeHandshakeInfo {
 
     public NodeHandshakeInfo() {
     }
+    //// SECTION^: Constructors
 
-    // SECTION: Getters and setters
+
+    //// SECTION: Getters and setters
     public String getCtxSessionID() {
         return ctxSessionID;
     }
@@ -43,4 +46,5 @@ public class NodeHandshakeInfo {
     public void setPowerIndex(PowerIndex powerIndex) {
         this.powerIndex = powerIndex;
     }
+    //// SECTION ^: Getters and setters
 }

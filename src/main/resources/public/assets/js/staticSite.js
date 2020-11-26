@@ -1,4 +1,4 @@
-// SECTION: Help Buttons
+//// SECTION: Help Buttons
 $(".login-help-btn").click(function () {
     $("#login-help-modal").modal("show");
 });
@@ -17,6 +17,7 @@ $(".server-info-btn").click(function () {
 $(".job-que-info-btn").click(function () {
     $("#job-que-info-modal").modal("show");
 });
+//// SECTION ^: Help Buttons
 
 
 // SECTION: Contact Buttons
@@ -51,7 +52,7 @@ let $blenderUseAllFramesCheck = $("#use-all-frames-check-box");
 let $endFrameInput = $("#end-frame-input");
 let $startFrameInput = $("#start-frame-input");
 
-// show blender render settings
+// Show blender render settings
 $projectTypeSelect.change(function () {
     if ($projectTypeSelect.val() > 1) {
         showElement($blenderRenderSettings);
@@ -60,7 +61,7 @@ $projectTypeSelect.change(function () {
     }
 });
 
-// disable blender frame selection if use all is checked
+// Disable blender frame selection if use all is checked
 $blenderUseAllFramesCheck.change(function () {
     if ($blenderUseAllFramesCheck.prop("checked")) {
         if (!$startFrameInput.prop("disabled")) {
