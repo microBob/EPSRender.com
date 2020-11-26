@@ -11,6 +11,11 @@
     <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&amp;display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.0/css/all.css">
     <link rel="stylesheet" href="assets/css/styles.css">
+
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/favicon_io/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon_io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon_io/favicon-16x16.png">
+    <link rel="manifest" href="assets/favicon_io/site.webmanifest">
 </head>
 
 <body>
@@ -80,8 +85,8 @@
                                                 <option value="1">Adobe After Effects (.aep, .aepx)</option>
                                             </optgroup>
                                             <optgroup label="Blender">
-                                                <option value="2">Blender 2.83.1 Cycles (.blend)</option>
-                                                <option value="3">Blender 2.83.1 EEVEE (.blend)</option>
+                                                <option value="2">Blender Cycles (.blend)</option>
+                                                <option value="3">Blender EEVEE (.blend)</option>
                                             </optgroup>
                                         </select></div>
                                         <!-- End: Type Select -->
@@ -277,10 +282,12 @@
             <div class="col-md-6">
                 <h5>Contact</h5>
                 <div class="btn-group-vertical" role="group">
-                    <a href="mailto:kyang@eastsideprep.org" class="btn btn-light text-left" id="support-btn" type="button"><i
+                    <a href="mailto:kyang@eastsideprep.org" class="btn btn-light text-left" id="support-btn"
+                       type="button"><i
                             class="far fa-life-ring"></i>&nbsp;Support
                     </a>
-                    <a href="mailto:kyang@eastsideprep.org" class="btn btn-light text-left" id="feedback-btn" type="button"><i
+                    <a href="mailto:kyang@eastsideprep.org" class="btn btn-light text-left" id="feedback-btn"
+                       type="button"><i
                             class="far fa-lightbulb"></i>&nbsp;Feedback
                     </a>
                 </div>
@@ -354,9 +361,10 @@
                         rendered as an H.264 MP4. Media Encoder Watch Folders will be used to accomplish this. Please
                         view <a href="https://helpx.adobe.com/media-encoder/how-to/create-watch-folder.html">this
                             page</a> for more information.<br><br>Blender projects will be rendered as the
-                        specified export type from
-                        the specified frames (inputs will be available when you select Blender as your type). Rendering
-                        will be done using Blender command line rendering</p>
+                        specified export type from the specified frames (inputs will be available when you select
+                        Blender as your type). Rendering
+                        will be done using Blender's command line tool. To ensure textures aren't lost, please enable
+                        File > External Data > Automatically Pack into .blend.</p>
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-light" type="button" data-dismiss="modal">Close</button>

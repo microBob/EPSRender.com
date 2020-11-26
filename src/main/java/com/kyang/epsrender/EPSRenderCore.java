@@ -40,15 +40,29 @@ public class EPSRenderCore {
 
         // SECTION: Demo items
 //        serverMeta.addServerNode(new Node("Tester 1", "kjasdhf9ia768927huisdaf9", 3));
-        BlenderProjectInfo blenderInfo = new BlenderProjectInfo(true);
+//        BlenderProjectInfo blenderInfo = new BlenderProjectInfo(true);
 //        BlenderProjectInfo blenderInfo = new BlenderProjectInfo(0, 10);
 //        blenderInfo.setFramesCompleted(5);
-        JobRequest right_here = new JobRequest("kyang@eastsideprep.org", ProjectType.BlenderEEVEE, "Right_Here",
-                blenderInfo);
-        serverMeta.addToVerifyingQueue(right_here);
+//        JobRequest right_here = new JobRequest("kyang@eastsideprep.org", ProjectType.BlenderEEVEE, "Right_Here",
+//                blenderInfo);
+//        serverMeta.addToVerifyingQueue(right_here);
 //        JobRequest create_edit_sequence = new JobRequest("kyang@eastsideprep.org", ProjectType.PremierePro, "create" +
 //                "-edit-sequence", null);
 //        serverMeta.addToVerifyingQueue(create_edit_sequence);
+
+        BlenderProjectInfo logoInfo = new BlenderProjectInfo(1, 30);
+        BlenderProjectInfo marbleInfo = new BlenderProjectInfo(24, 44);
+        JobRequest logo = new JobRequest("kyang@eastsideprep.org", ProjectType.BlenderCycles, "EPS Render Server " +
+                "Logo", logoInfo);
+        JobRequest marbles = new JobRequest("kyang@eastsideprep.org", ProjectType.BlenderCycles, "Marbles", marbleInfo);
+
+//        JobRequest create_edit_sequence = new JobRequest("kyang@eastsideprep.org", ProjectType.PremierePro, "create" +
+//                "-edit-sequence", null);
+
+        serverMeta.addToVerifyingQueue(logo);
+        serverMeta.addToVerifyingQueue(marbles);
+//        serverMeta.addToVerifyingQueue(create_edit_sequence);
+
         // SECTION ^: Demo items
 
         // SECTION: node ping
@@ -56,6 +70,14 @@ public class EPSRenderCore {
         Runnable pingTask = () -> {
             for (Node n : serverMeta.getAliveNodes()) {
                 serverMeta.getCtxIdHash().get(n.getCtxSessionID()).send("KeepAlive");
+            }
+
+            if (serverMeta.getServerNodes().stream().filter(node -> node.getNodeStatus().equals(NodeStatus.Ready)).findFirst().orElse(null) != null) {
+                try {
+                    InitNextJob();
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
+                }
             }
         };
         executorService.scheduleAtFixedRate(pingTask, 0, 55, TimeUnit.SECONDS);
@@ -143,7 +165,6 @@ public class EPSRenderCore {
 
                                         // add to Job Queue and remove from verify
                                         serverMeta.addToJobQueue(refJob);
-                                        serverMeta.removeJobFromVerifyingQueueWithName(refJob.getProjectFolderName());
 
                                         // ready to branch out to render que
                                         for (int frame = refJob.getBlenderInfo().getStartFrame(); frame <= refJob.getBlenderInfo().getEndFrame(); frame++) {
@@ -164,13 +185,14 @@ public class EPSRenderCore {
 //                                        (jobRequest.getBlenderInfo().getFrameNumber() + ", "));
 //                                        System.out.println("\n");
                                         }
-
-                                        // reset node that did verifying
-                                        refNode.setCurrentJob(null);
-                                        refNode.setNodeStatus(NodeStatus.Ready);
                                     } else { // and it's not
                                         System.out.println("[Blender Verify]:\tProject \"" + inMessage.getData().getProjectFolderName() + "\" Failed!");
                                     }
+
+                                    serverMeta.removeJobFromVerifyingQueueWithName(refJob.getProjectFolderName());
+                                    // reset node that did verifying
+                                    refNode.setCurrentJob(null);
+                                    refNode.setNodeStatus(NodeStatus.Ready);
 
                                     JsonNode mailResponse = sendMessage(inMessage.getData());
 
@@ -358,14 +380,14 @@ public class EPSRenderCore {
 
             // add to Job Queue and remove from verify
             serverMeta.addToJobQueue(refJob);
-            serverMeta.removeJobFromVerifyingQueueWithName(refJob.getProjectFolderName());
-
-            // reset node that did verifying
-            refNode.setCurrentJob(null);
-            refNode.setNodeStatus(NodeStatus.Ready);
         } else {
             System.out.println(s + inMessage.getData().getProjectFolderName() + "\" Failed!");
         }
+
+        serverMeta.removeJobFromVerifyingQueueWithName(refJob.getProjectFolderName());
+        // reset node that did verifying
+        refNode.setCurrentJob(null);
+        refNode.setNodeStatus(NodeStatus.Ready);
 
         mailResponse = sendMessage(inMessage.getData());
         System.out.println("[Email Response]:\t" + mailResponse.toString());
