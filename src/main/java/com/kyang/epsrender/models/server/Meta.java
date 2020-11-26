@@ -55,8 +55,6 @@ public class Meta {
     public JobRequest getJobFromJobQueue() {
         synchronized (jobQueue) {
             if (!jobQueue.isEmpty()) {
-                System.out.println("[Job Status]:\t"+jobQueue.get(0).getJobStatus().toString());
-
                 // check for necro
                 JobRequest jobZero = jobQueue.get(0);
                 if (jobZero.getJobStatus().equals(JobStatus.Necro)) {
@@ -65,7 +63,7 @@ public class Meta {
                     return jobZero;
                 }
 
-                // check for active blender jobs
+                // check for active blender jobs with 0 renderers
                 JobRequest openBlenderJob =
                         jobQueue.stream().filter(jobRequest -> jobRequest.getBlenderInfo() != null &&
                                 jobRequest.getJobStatus().equals(JobStatus.Rendering) &&
@@ -77,21 +75,29 @@ public class Meta {
                     return nextFrame;
                 }
 
-                // pick next job
-                JobRequest openJob =
-                        jobQueue.stream().filter(this::isJobNotTakenByNode).findFirst().orElse(null);
-                if (openJob != null) {
-                    if (openJob.getBlenderInfo() != null) {
-                        JobRequest nextFrame = getJobFromBlenderQueueWithName(openJob.getProjectFolderName());
-                        if (nextFrame != null) {
-                            nextFrame.setJobStatus(JobStatus.Rendering);
-                            openJob.setJobStatus(JobStatus.Rendering);
-                            openJob.getBlenderInfo().addRenderers();
-                        }
-                        getJobFromJobQueueWithName(openJob.getProjectFolderName()).setJobStatus(JobStatus.Rendering);
-                        return nextFrame;
+                // pick next queued job
+                JobRequest queuedJob =
+                        jobQueue.stream().filter(jobRequest -> jobRequest.getJobStatus().equals(JobStatus.Queued)).findFirst().orElse(null);
+                if (queuedJob != null) {
+                    if (queuedJob.getBlenderInfo() != null) {
+                        JobRequest firstFrame = getJobFromBlenderQueueWithName(queuedJob.getProjectFolderName());
+                        firstFrame.setJobStatus(JobStatus.Rendering);
+                        queuedJob.setJobStatus(JobStatus.Rendering);
+                        queuedJob.getBlenderInfo().addRenderers();
+
+                        return firstFrame; // return first frame of this job
                     }
-                    return openJob;
+                    return queuedJob;
+                }
+
+                // if nothing in queue, check to blender farm
+                JobRequest blenderFarmJob =
+                        jobQueue.stream().filter(jobRequest -> jobRequest.getBlenderInfo() != null && jobRequest.getJobStatus().equals(JobStatus.Rendering)).findFirst().orElse(null);
+                if (blenderFarmJob != null) {
+                    JobRequest nextFrame = getJobFromBlenderQueueWithName(blenderFarmJob.getProjectFolderName());
+                    nextFrame.setJobStatus(JobStatus.Rendering);
+                    blenderFarmJob.getBlenderInfo().addRenderers();
+                    return nextFrame;
                 }
             }
             return null;
