@@ -54,12 +54,10 @@ public class Meta {
 
     public JobRequest getJobFromJobQueue() {
         synchronized (jobQueue) {
-//            System.out.println("Looking for job");
             if (!jobQueue.isEmpty()) {
                 System.out.println("[Job Status]:\t"+jobQueue.get(0).getJobStatus().toString());
-                // check for necro
-//                System.out.println("checking for necro");
 
+                // check for necro
                 JobRequest jobZero = jobQueue.get(0);
                 if (jobZero.getJobStatus().equals(JobStatus.Necro)) {
                     jobZero.setJobStatus(JobStatus.Rendering);
@@ -68,46 +66,31 @@ public class Meta {
                 }
 
                 // check for active blender jobs
-//                System.out.println("Checking for already open blender");
                 JobRequest openBlenderJob =
                         jobQueue.stream().filter(jobRequest -> jobRequest.getBlenderInfo() != null &&
                                 jobRequest.getJobStatus().equals(JobStatus.Rendering) &&
                                 jobRequest.getBlenderInfo().getRenderers() == 0).findFirst().orElse(null);
-//                int index = jobQueue.indexOf(openBlenderJob);
-//                JobRequest nextFrame = getNextFrameOfBlenderJob(openBlenderJob/*, index*/);
-//                if (nextFrame != null) return nextFrame;
                 if (openBlenderJob != null) {
                     JobRequest nextFrame = getJobFromBlenderQueueWithName(openBlenderJob.getProjectFolderName());
-//            int frameIndex = getBlenderQueue().indexOf(nextFrame);
                     nextFrame.setJobStatus(JobStatus.Rendering);
                     openBlenderJob.getBlenderInfo().addRenderers();
-//            getJobQueue().set(index, openBlenderJob);
-//            getBlenderQueue().set(frameIndex, nextFrame);
-//                    System.out.println("Active next frame "+nextFrame.getBlenderInfo().getFrameNumber());
                     return nextFrame;
                 }
 
                 // pick next job
-//                System.out.println("checking for new ME");
                 JobRequest openJob =
                         jobQueue.stream().filter(this::isJobNotTakenByNode).findFirst().orElse(null);
-//                index = jobQueue.indexOf(openJob);
                 if (openJob != null) {
-                    // pick next frame from active blender job
                     if (openJob.getBlenderInfo() != null) {
                         JobRequest nextFrame = getJobFromBlenderQueueWithName(openJob.getProjectFolderName());
-//            int frameIndex = getBlenderQueue().indexOf(nextFrame);
                         if (nextFrame != null) {
                             nextFrame.setJobStatus(JobStatus.Rendering);
+                            openJob.setJobStatus(JobStatus.Rendering);
                             openJob.getBlenderInfo().addRenderers();
                         }
-//            getJobQueue().set(index, openBlenderJob);
-//            getBlenderQueue().set(frameIndex, nextFrame);
-//                    System.out.println("Passive next frame "+nextFrame.getBlenderInfo().getFrameNumber());
                         getJobFromJobQueueWithName(openJob.getProjectFolderName()).setJobStatus(JobStatus.Rendering);
                         return nextFrame;
                     }
-//                    jobQueue.set(index, openJob);
                     return openJob;
                 }
             }
