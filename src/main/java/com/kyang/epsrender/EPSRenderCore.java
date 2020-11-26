@@ -39,28 +39,17 @@ public class EPSRenderCore {
 
 
         // SECTION: Demo items
-//        serverMeta.addServerNode(new Node("Tester 1", "kjasdhf9ia768927huisdaf9", 3));
-//        BlenderProjectInfo blenderInfo = new BlenderProjectInfo(true);
-//        BlenderProjectInfo blenderInfo = new BlenderProjectInfo(0, 10);
-//        blenderInfo.setFramesCompleted(5);
-//        JobRequest right_here = new JobRequest("kyang@eastsideprep.org", ProjectType.BlenderEEVEE, "Right_Here",
-//                blenderInfo);
-//        serverMeta.addToVerifyingQueue(right_here);
-//        JobRequest create_edit_sequence = new JobRequest("kyang@eastsideprep.org", ProjectType.PremierePro, "create" +
-//                "-edit-sequence", null);
-//        serverMeta.addToVerifyingQueue(create_edit_sequence);
-
-        BlenderProjectInfo logoInfo = new BlenderProjectInfo(1, 30);
-        BlenderProjectInfo marbleInfo = new BlenderProjectInfo(24, 44);
-        JobRequest logo = new JobRequest("kyang@eastsideprep.org", ProjectType.BlenderCycles, "EPS Render Server " +
-                "Logo", logoInfo);
-        JobRequest marbles = new JobRequest("kyang@eastsideprep.org", ProjectType.BlenderCycles, "Marbles", marbleInfo);
+//        BlenderProjectInfo iconInfo = new BlenderProjectInfo(1, 30);
+//        BlenderProjectInfo marbleInfo = new BlenderProjectInfo(24, 44);
+//        JobRequest icon = new JobRequest("kyang@eastsideprep.org", ProjectType.BlenderCycles, "EPS Render Server " +
+//                "Icon", iconInfo);
+//        JobRequest marbles = new JobRequest("kyang@eastsideprep.org", ProjectType.BlenderCycles, "Marbles", marbleInfo);
 
 //        JobRequest create_edit_sequence = new JobRequest("kyang@eastsideprep.org", ProjectType.PremierePro, "create" +
 //                "-edit-sequence", null);
 
-        serverMeta.addToVerifyingQueue(logo);
-        serverMeta.addToVerifyingQueue(marbles);
+//        serverMeta.addToVerifyingQueue(icon);
+//        serverMeta.addToVerifyingQueue(marbles);
 //        serverMeta.addToVerifyingQueue(create_edit_sequence);
 
         // SECTION ^: Demo items
