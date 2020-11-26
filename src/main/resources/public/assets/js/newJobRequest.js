@@ -1,16 +1,19 @@
-// SECTION: Global values
+//// SECTION: Global values
 let userName = "";
 
+//// SECTION ^: Global values
 
-// SECTION: page init
+
+//// SECTION: Page init
 $(function () {
     updateLoginStatus();
     updateStatusBtn();
 })
 setInterval(updateStatusBtn, 60000);
+//// SECTION ^: Page init
 
 
-// SECTION: Login with EPS Auth
+//// SECTION: Login with EPS Auth
 function updateLoginStatus() {
     request({url: "/update_login_stat"}).then(data => {
         console.log("Updating login status");
@@ -28,7 +31,7 @@ function updateLoginStatus() {
         let $jobSubmitBtn = $("#job-submit-btn");
         let $warningErrorP = $("#warning-error-p");
 
-        if (data !== "" && data !== "!invalid!") { // has valid login
+        if (data !== "" && data !== "!invalid!") { /// Has valid login
             console.log("Welcome " + data);
             // 1
             showElement($loginRow, false)
@@ -44,7 +47,7 @@ function updateLoginStatus() {
             removeCSSClass($warningErrorP, "text-warning");
             // 6
             userName = data;
-        } else { // missing or invalid
+        } else { /// Missing or invalid
             console.log("No valid login :(");
             // 1
             showElement($loginRow);
@@ -64,17 +67,19 @@ function updateLoginStatus() {
         console.log("Update Login Error: " + onerror)
     });
 }
+//// SECTION ^: Login with EPS Auth
 
-// SECTION: validation
-// used selectors
+
+//// SECTION: Validation
+/// Used selectors
 let $projectFolderNameInput = $("#project-folder-name-input");
 let $errorMessageLbl = $("#warning-error-p");
 let $jobSubmitBtn = $("#job-submit-btn");
 
-// pre-check
+// Pre-check
 let checkForBlender = false;
 
-// check if all required fields are filled
+/// Check if all required fields are filled
 function completionValidation(showIssue = false) {
     /*
      * 1) check if project type is > 2 (whether need to check on blender render)
@@ -175,6 +180,8 @@ function completionValidation(showIssue = false) {
         }
     }
 }
+//// SECTION ^: Validation
+
 
 $("#new-job-request-form").submit(function () {
     console.log("Sending new job request!");

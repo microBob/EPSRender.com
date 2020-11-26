@@ -1,15 +1,14 @@
 package com.kyang.epsrender.models.messages;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.kyang.epsrender.Enums.ProjectType;
 import com.kyang.epsrender.Enums.JobStatus;
-import com.kyang.epsrender.models.messages.BlenderProjectInfo;
+import com.kyang.epsrender.Enums.ProjectType;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class JobRequest {
-    // SECTION: Properties
+    //// SECTION: Properties
     private String userEmail;
     private ProjectType projectType;
     private String projectFolderName;
@@ -19,10 +18,12 @@ public class JobRequest {
     private String errorMsg;
     private String timeAdded;
     private JobStatus jobStatus = JobStatus.Verifying;
+    //// SECTION ^: Properties
 
 
-    // SECTION: Constructors
-    public JobRequest(String userEmail, ProjectType projectType, String projectFolderName, BlenderProjectInfo blenderInfo) {
+    //// SECTION: Constructors
+    public JobRequest(String userEmail, ProjectType projectType, String projectFolderName,
+                      BlenderProjectInfo blenderInfo) {
         this.userEmail = userEmail;
         this.projectType = projectType;
         this.projectFolderName = projectFolderName;
@@ -33,9 +34,10 @@ public class JobRequest {
 
     public JobRequest() {
     }
+    //// SECTION ^: Constructors
 
 
-    // SECTION: Getters and setters
+    //// SECTION: Getters and setters
     public String getUserEmail() {
         return userEmail;
     }
@@ -114,4 +116,5 @@ public class JobRequest {
     public void setJobStatus(JobStatus jobStatus) {
         this.jobStatus = jobStatus;
     }
+    //// SECTION ^: Getters and setters
 }

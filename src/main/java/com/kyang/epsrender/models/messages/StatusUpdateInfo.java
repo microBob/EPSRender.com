@@ -2,25 +2,24 @@ package com.kyang.epsrender.models.messages;
 
 import com.kyang.epsrender.EPSRenderCore;
 import com.kyang.epsrender.Enums.JobStatus;
-import com.kyang.epsrender.Enums.ProjectType;
 import com.kyang.epsrender.models.server.Node;
-import com.kyang.epsrender.models.server.NodeSortingComparator;
 
 import java.util.ArrayList;
 
 public class StatusUpdateInfo {
-    // SECTION: Properties
+    //// SECTION: Properties
     private ArrayList<String> jobQueue = new ArrayList<>();
     private ArrayList<String> serverStat = new ArrayList<>();
+    //// SECTION ^: Properties
 
 
-    // SECTION: Constructors
+    //// SECTION: Constructors
     public StatusUpdateInfo(ArrayList<JobRequest> jobQueue, ArrayList<JobRequest> verifyingQueue,
                             ArrayList<Node> nodes) {
         String rowClosing = "</td></tr>";
 
-        //// merge in verifying -> rendering -> queued
-        // merge in verifying
+        /// Merge in verifying -> rendering -> queued
+        // Merge in verifying
         for (JobRequest vq : verifyingQueue) {
             String row = jobQueueRowStarter(vq, JobStatus.Verifying);
             row += "Verifying";
@@ -28,11 +27,11 @@ public class StatusUpdateInfo {
 
             this.jobQueue.add(row);
         }
-        //merge in rendering
+        // Merge in rendering
         for (JobRequest jr : EPSRenderCore.getServerMeta().getRenderingJobs()) {
             String row = jobQueueRowStarter(jr, JobStatus.Rendering);
             System.out.println("===Job is rendering===");
-            // change display type if blender
+            // Change display type if blender
             if (jr.getBlenderInfo() != null) {
                 System.out.println("Blender rendering");
                 row += jr.getBlenderInfo().getFramesCompleted();
@@ -45,7 +44,7 @@ public class StatusUpdateInfo {
             row += rowClosing;
             this.jobQueue.add(row);
         }
-        // merge in queued
+        // Merge in queued
         int placeInQueue = 1;
         for (JobRequest jr : EPSRenderCore.getServerMeta().getQueuedJobs()) {
             System.out.println("===Job is queued===");
@@ -82,8 +81,10 @@ public class StatusUpdateInfo {
             this.serverStat.add(row);
         }
     }
+    //// SECTION ^: Constructors
 
-    // SECTION: Getters and setters
+
+    //// SECTION: Getters and setters
     private String jobQueueRowStarter(JobRequest jobRequest, JobStatus jobStatus) {
         String rowOpening = "<tr><td>";
         String newCell = "</td><td>";
@@ -128,4 +129,5 @@ public class StatusUpdateInfo {
     public void setServerStat(ArrayList<String> serverStat) {
         this.serverStat = serverStat;
     }
+    //// SECTION ^: Getters and setters
 }

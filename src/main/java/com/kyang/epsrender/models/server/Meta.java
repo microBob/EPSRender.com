@@ -20,8 +20,7 @@ public class Meta {
 
 
     //// SECTION: Getters and setters
-
-    // SECTION: Job Queue
+    /// SECTION: Job Queue
     public ArrayList<JobRequest> getJobQueue() {
         synchronized (jobQueue) {
             return jobQueue;
@@ -115,8 +114,10 @@ public class Meta {
             this.jobQueue.removeIf(jobRequest -> jobRequest.getProjectFolderName().equals(folderName));
         }
     }
+    /// SECTION ^: Job Queue
 
-    // SECTION: Verifying Queue
+
+    /// SECTION: Verifying Queue
 
     public ArrayList<JobRequest> getVerifyingQueue() {
         synchronized (verifyingQueue) {
@@ -147,9 +148,10 @@ public class Meta {
             this.verifyingQueue.removeIf(jobRequest -> jobRequest.getProjectFolderName().equals(folderName));
         }
     }
+    /// SECTION ^: Verifying Queue
 
-    // SECTION: Blender Queue
 
+    /// SECTION: Blender Queue
     public ArrayList<JobRequest> getBlenderQueue() {
         synchronized (blenderQueue) {
             return this.blenderQueue;
@@ -193,8 +195,9 @@ public class Meta {
             this.blenderQueue.removeIf(jobRequest -> jobRequest.getProjectFolderName().equals(folderName));
         }
     }
+    /// SECTION ^: Blender Queue
 
-    // SECTION: Server Nodes
+    /// SECTION: Server Nodes
     public ArrayList<Node> getServerNodes() {
         sortServerNodes();
         synchronized (serverNodes) {
@@ -255,9 +258,11 @@ public class Meta {
             this.ctxIdHash.put(id, ctx);
         }
     }
+    /// SECTION ^: Server Nodes
+    //// SECTION ^: Getters and setters
 
 
-    // SECTION: internal methods
+    //// SECTION: Internal methods
     private boolean nodesAvailable() {
         synchronized (serverNodes) {
             return serverNodes.stream().anyMatch(node -> node.getNodeStatus().equals(NodeStatus.Ready));
@@ -272,4 +277,5 @@ public class Meta {
             }
         }
     }
+    //// SECTION ^: Internal methods
 }

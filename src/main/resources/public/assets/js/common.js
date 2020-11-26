@@ -1,4 +1,4 @@
-// HTTP request
+/// HTTP request
 function request(obj) {
     return new Promise((resolve, reject) => {
         let xhr = new XMLHttpRequest();
@@ -17,22 +17,22 @@ function request(obj) {
 }
 
 
-// SECTION: frequently used CSS
-// Safe add CSS class
+//// SECTION: Frequently used CSS
+/// Safe add CSS class
 function addCSSClass(selector, className) {
     if (!selector.hasClass(className)) {
         selector.addClass(className);
     }
 }
 
-// Safe remove CSS class
+/// Safe remove CSS class
 function removeCSSClass(selector, className) {
     if (selector.hasClass(className)) {
         selector.removeClass(className);
     }
 }
 
-// Show/Hide element
+/// Show/Hide element
 function showElement(selector, show = true) {
     if (show) {
         removeCSSClass(selector, "d-none");

@@ -1,22 +1,24 @@
 package com.kyang.epsrender.models.server;
 
 import com.kyang.epsrender.EPSRenderCore;
-import com.kyang.epsrender.Enums.*;
+import com.kyang.epsrender.Enums.MessageType;
+import com.kyang.epsrender.Enums.NodeStatus;
+import com.kyang.epsrender.Enums.PowerIndex;
+import com.kyang.epsrender.Enums.ProjectType;
 import com.kyang.epsrender.models.messages.JobRequest;
 import com.kyang.epsrender.models.messages.Message;
-import com.kyang.epsrender.models.server.Meta;
-import io.javalin.websocket.WsContext;
 
 public class Node {
-    // SECTION: Properties
+    //// SECTION: Properties
     private String nodeName;
     private String ctxSessionID;
     private PowerIndex powerIndex;
     private NodeStatus nodeStatus = NodeStatus.Ready;
     private JobRequest currentJob;
+    //// SECTION ^: Properties
 
 
-    // SECTION: Constructors
+    //// SECTION: Constructors
     public Node(String nodeName, String ctxSessionID, PowerIndex powerIndex) {
         this.nodeName = nodeName;
         this.ctxSessionID = ctxSessionID;
@@ -26,9 +28,10 @@ public class Node {
     public Node(String ctxSessionID) {
         this.ctxSessionID = ctxSessionID;
     }
+    //// SECTION ^: Constructors
 
 
-    // SECTION: Internal functions
+    //// SECTION: Internal functions
     public Message getNextJob() {
         Meta serverMeta = EPSRenderCore.getServerMeta();
 
@@ -37,7 +40,7 @@ public class Node {
         if (jobFromVerifyingQueue != null) {
             System.out.println("[Node " + nodeName + "]:\tVerifying job " + jobFromVerifyingQueue.getProjectFolderName());
 
-            // set this as current job and set rendering
+            // Set this as current job and set rendering
             this.currentJob = jobFromVerifyingQueue;
             this.nodeStatus = NodeStatus.Rendering;
 
@@ -52,7 +55,7 @@ public class Node {
         if (jobFromJobQueue != null) {
             System.out.println("[Node " + nodeName + "]:\tRendering job " + jobFromJobQueue.getProjectFolderName());
 
-            // set this as current job and set rendering
+            // Set this as current job and set rendering
             this.currentJob = jobFromJobQueue;
             this.nodeStatus = NodeStatus.Rendering;
 
@@ -69,9 +72,10 @@ public class Node {
         // No next job
         return null;
     }
+    //// SECTION ^: Internal functions
 
 
-    // SECTION: Getters and setters
+    //// SECTION: Getters and setters
     public String getNodeName() {
         return nodeName;
     }
@@ -111,4 +115,5 @@ public class Node {
     public void setCurrentJob(JobRequest currentJob) {
         this.currentJob = currentJob;
     }
+    //// SECTION ^: Getters and setters
 }
