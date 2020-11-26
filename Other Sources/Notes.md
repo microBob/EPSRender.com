@@ -26,28 +26,27 @@
 	
 * **`post-login-form`**
 	
-	  * div with the rest of the job request form
-	  * shown when logged in
-	  * project type drop-down: **`type-select`**
+	* div with the rest of the job request form
+	* shown when logged in
+	* project type drop-down: **`type-select`**
 	  	* **`0`** = Premiere
 	  	* **`1`** = After Effects
 	  	* **`2`** = Cycles
 	  	* **`3`** = EEVEE
 	  	* 2/3 (blender) will show frame selection settings
-	  * **`blender-render-settings`**
+	* **`blender-render-settings`**
 	  	* div with blender frame selections settings
 	  	* number input: **`start-frame-input`**
 	  	* number input: **`end-frame-input`**
 	  	* check-box: **`use-all-frames-check-box`**
 	  		* disable above two when checked
 	  		* registers all frames to be rendered
-	  * **`project-folder-name-input`**
+	* **`project-folder-name-input`**
 	  	* project folder name
 	  	* needs to be greater than 1 character
-	  * **`warning-error-p`**
-	  	* show default alert and any form validation errors
-	  	
-	  	   * it is the `<span>` that contains the error message, not the whole `<p>` itself
+	* **`warning-error-p`**
+		* show default alert and any form validation errors
+			* it is the `<span>` that contains the error message, not the whole `<p>` itself
 	  
 	* form submit button: **`job-submit-btn`**
 	
@@ -58,7 +57,7 @@
 	  * | User | Type | Time Added | Status                       |
 	  	| ---- | ---- | ---------- | ---------------------------- |
 	  	|      |      |            | **`x`**/**`total`** rendered |
-	  |      |      |            | Verifying                    |
+	  	|      |      |            | Verifying                    |
 	  	|      |      |            | Place **`#`** in Queue       |
 	  	
 	  * CSS colors
@@ -76,7 +75,7 @@
 	  	* | Node | Status    |
 	  		| ---- | --------- |
 	  		|      | Offline   |
-	  	|      | Ready     |
+	  		|      | Ready     |
 	  		|      | Rendering |
 	  	
 	  * CSS colors
